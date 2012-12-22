@@ -35,7 +35,9 @@ A validator can also be marked optional, in which case the validation will only 
 
 ;; Default validators
 (defn required
-  "Returns a validation function that checks k is present in the map being validated.
+  "Returns a validation function that checks k has a value the map being validated.
+If the value is a string, it makes sure it's not empty, otherwise it checks for nils.
+
 If no message is given, a default message will be used"
   ([k]
      (required k (format "%s must be present" (key->name k))))
