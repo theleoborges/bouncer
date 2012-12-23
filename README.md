@@ -22,6 +22,22 @@ In the end this might be useful as one more answer to the question *What are mon
 
 ## Usage
 
+If you're using leiningen, add it as a dependency to your project:
+
+```clojure
+[bouncer "0.1.0-SNAPSHOT"]
+```
+
+Or if you're using maven: 
+
+```xml
+<dependency>
+  <groupId>bouncer</groupId>
+  <artifactId>bouncer</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+</dependency>
+```
+
 *bouncer* provides two main functions, `validate` and `valid?`
 
 `validate` takes a map and one or more validation functions - the library ships with a couple - and returns a vector. 
