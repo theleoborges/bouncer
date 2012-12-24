@@ -128,26 +128,30 @@
 
 
 (deftest array-validations
-  (testing "nested coll"
-    (is (core/valid? {:name "Leo" :pets [{:name "Aragorn"} {:name "Gandalf"}]}
-                     (core/every :pets #(not (nil? (:name %))))))
+  (let [valid-map   {:name "Leo" :pets [{:name "Aragorn"} {:name "Gandalf"}]}
+        invalid-map {:name "Leo" :pets [{:name nil} {:name "Gandalf"}]}]
     
-    (is (not (core/valid? {:name "Leo" :pets [{:name nil} {:name "Gandalf"}]}
-                          (core/every :pets #(not (nil? (:name %))))))))
+    (testing "nested colls"
+      (is (core/valid? valid-map
+                       (core/every :pets #(not (nil? (:name %))))))
+      
+      (is (not (core/valid? invalid-map
+                            (core/every :pets #(not (nil? (:name %))))))))
 
-  (testing "default messages for nested colls"
-    (let [[result map] (core/validate {:name "Leo" :pets [{:name nil} {:name "Gandalf"}]}
-                                      (core/every :pets #(not (nil? (:name %)))))]
-      (is (= "All items in pets must satisfy the predicate"
-             (-> result :pets (first))))))
+    (testing "default messages for nested colls"
+      (let [[result map] (core/validate invalid-map
+                                        (core/every :pets #(not (nil? (:name %)))))]
+        (is (= "All items in pets must satisfy the predicate"
+               (-> result :pets (first))))))
 
-  (testing "custom messages for nested colls"
-    (let [[result map] (core/validate {:name "Leo" :pets [{:name nil} {:name "Gandalf"}]}
-                                      (core/every :pets
-                                                  #(not (nil? (:name %)))
-                                                  "All pets must have names"))]
-      (is (= "All pets must have names"
-             (-> result :pets (first))))))
+    (testing "custom messages for nested colls"
+      (let [[result map] (core/validate invalid-map
+                                        (core/every :pets
+                                                    #(not (nil? (:name %)))
+                                                    "All pets must have names"))]
+        (is (= "All pets must have names"
+               (-> result :pets (first)))))))
+  
 
   (testing "deep nested coll"
     (is (core/valid? {:name "Leo"
@@ -162,20 +166,22 @@
 
 (deftest all-validations
   (testing "all built-in validators"
-    (is (= {
-            :age '("age must be a number" "age must be present")
-            :name '("name must be present")
-            :passport {:number '("number must be a positive number")}
-            :address {:past '("All items in past must satisfy the predicate")}
-            }
-           (first (core/validate {:name nil
-                                  :age ""
-                                  :passport {:number -7 :issued_by "Australia"}
-                                  :address {:current { :country "Australia"}
-                                            :past [{:country nil} {:country "Brasil"}]}}
-                                 (core/required :name)
-                                 (core/required :age)
-                                 (core/number :age)
-                                 (core/positive [:passport :number])
-                                 (core/every [:address :past]
-                                             #(not (nil? (:country %))))))))))
+    (let [errors-map {
+                      :age '("age must be a number" "age must be present")
+                      :name '("name must be present")
+                      :passport {:number '("number must be a positive number")}
+                      :address {:past '("All items in past must satisfy the predicate")}
+                      }
+          invalid-map {:name nil
+                       :age ""
+                       :passport {:number -7 :issued_by "Australia"}
+                       :address {:current { :country "Australia"}
+                                 :past [{:country nil} {:country "Brasil"}]}}]
+      (is (= errors-map
+             (first (core/validate invalid-map
+                                   (core/required :name)
+                                   (core/required :age)
+                                   (core/number :age)
+                                   (core/positive [:passport :number])
+                                   (core/every [:address :past]
+                                               #(not (nil? (:country %)))))))))))
