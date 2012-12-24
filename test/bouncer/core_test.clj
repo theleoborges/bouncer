@@ -159,3 +159,23 @@
                            :address {:current { :country "Australia"}
                                      :past [{:country "Spain"} {:country nil}]}}
                           (core/every [:address :past] #(not (nil? (:country %)))))))))
+
+(deftest all-validations
+  (testing "all built-in validators"
+    (is (= {
+            :age '("age must be a number" "age must be present")
+            :name '("name must be present")
+            :passport {:number '("number must be a positive number")}
+            :address {:past '("All items in past must satisfy the predicate")}
+            }
+           (first (core/validate {:name nil
+                                  :age ""
+                                  :passport {:number -7 :issued_by "Australia"}
+                                  :address {:current { :country "Australia"}
+                                            :past [{:country nil} {:country "Brasil"}]}}
+                                 (core/required :name)
+                                 (core/required :age)
+                                 (core/number :age)
+                                 (core/positive [:passport :number])
+                                 (core/every [:address :past]
+                                             #(not (nil? (:country %))))))))))
