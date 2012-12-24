@@ -38,6 +38,8 @@ A validator can also be marked optional, in which case the validation will only 
   "Returns a validation function that checks k has a value the map being validated.
 If the value is a string, it makes sure it's not empty, otherwise it checks for nils.
 
+If k is a vector, it is assumed to be the path in an nested associative structure. In this case, the :errors entry will mirror this path
+
 If no message is given, a default message will be used"
   ([k]
      (required k (format "%s must be present" (key->name k))))
@@ -48,6 +50,9 @@ If no message is given, a default message will be used"
 
 (defn number
   "Returns a validation function that checks the value for k is a number.
+
+If k is a vector, it is assumed to be the path in an nested associative structure. In this case, the :errors entry will mirror this path
+
 If no message is given, a default message will be used"
   ([k]
      (number k (format "%s must be a number" (key->name k))))
@@ -56,12 +61,27 @@ If no message is given, a default message will be used"
 
 (defn positive
   "Returns a validation function that checks the value for k is greater than zero.
+
+If k is a vector, it is assumed to be the path in an nested associative structure. In this case, the :errors entry will mirror this path
+
 If no message is given, a default message will be used"
   ([k]
      (positive k (format "%s must be a positive number" (key->name k))))
   ([k msg]
      (mk-validator #(> (or % 0) 0) k msg :optional true)))
 
+(defn every
+  "Returns a validation function that checks pred for every item in the collection at key k.
+
+pred can be any function that yields a boolean value for each item it receives.
+
+If k is a vector, it is assumed to be the path in an nested associative structure. In this case, the :errors entry will mirror this path
+
+If no message is given, a default message will be used"
+  ([k pred]
+     (every k pred (format "All items in %s must satisfy the predicate" (key->name k))))
+  ([k pred msg]
+     (mk-validator #(every? pred %) k msg)))
 
 (defmacro validate
   "Validates the map m using the validation functions fs.

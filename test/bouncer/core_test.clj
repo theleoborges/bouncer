@@ -49,7 +49,7 @@
                      (core/required [:address :street])))
 
     (is (not (core/valid? {}
-                     (core/required [:address :street])))))
+                          (core/required [:address :street])))))
 
 
   (testing "optional nested validations"
@@ -70,20 +70,24 @@
 
 (deftest validation-messages
   (testing "default messages"
-    (is (= "name must be present" (first-error-for :name
-                                                   (core/validate {}
-                                                                  (core/required :name)))))
+    (is (= "name must be present"
+           (first-error-for :name
+                            (core/validate {}
+                                           (core/required :name)))))
 
-    (is (= "age must be present" (first-error-for :age
-                                                   (core/validate {}
-                                                                  (core/required :age)))))
-    (is (= "age must be a number" (first-error-for :age
-                                                   (core/validate {:age ""}
-                                                                  (core/number :age)))))
+    (is (= "age must be present"
+           (first-error-for :age
+                            (core/validate {}
+                                           (core/required :age)))))
+    (is (= "age must be a number"
+           (first-error-for :age
+                            (core/validate {:age ""}
+                                           (core/number :age)))))
 
-    (is (= "age must be a positive number" (first-error-for :age
-                                                   (core/validate {:age -7}
-                                                                  (core/positive :age)))))
+    (is (= "age must be a positive number"
+           (first-error-for :age
+                            (core/validate {:age -7}
+                                           (core/positive :age)))))
 
     (is (= {
             :age '("age must be a number" "age must be present")
@@ -110,10 +114,10 @@
 (deftest validation-result
   (testing "invalid results"
     (let [[result map] (core/validate {:age -1 :year ""}
-                                 (core/required :name)
-                                 (core/required :year)
-                                 (core/number :year)
-                                 (core/positive :age))]
+                                      (core/required :name)
+                                      (core/required :year)
+                                      (core/number :year)
+                                      (core/positive :age))]
       (is (= result (:errors map)))))
 
 
@@ -121,3 +125,37 @@
     (let [[result map] (core/validate {:name "Leo"} (core/required :name))]
       (is (true? (and (empty? result)
                       (nil? (:errors map))))))))
+
+
+(deftest array-validations
+  (testing "nested coll"
+    (is (core/valid? {:name "Leo" :pets [{:name "Aragorn"} {:name "Gandalf"}]}
+                     (core/every :pets #(not (nil? (:name %))))))
+    
+    (is (not (core/valid? {:name "Leo" :pets [{:name nil} {:name "Gandalf"}]}
+                          (core/every :pets #(not (nil? (:name %))))))))
+
+  (testing "default messages for nested colls"
+    (let [[result map] (core/validate {:name "Leo" :pets [{:name nil} {:name "Gandalf"}]}
+                                      (core/every :pets #(not (nil? (:name %)))))]
+      (is (= "All items in pets must satisfy the predicate"
+             (-> result :pets (first))))))
+
+  (testing "custom messages for nested colls"
+    (let [[result map] (core/validate {:name "Leo" :pets [{:name nil} {:name "Gandalf"}]}
+                                      (core/every :pets
+                                                  #(not (nil? (:name %)))
+                                                  "All pets must have names"))]
+      (is (= "All pets must have names"
+             (-> result :pets (first))))))
+
+  (testing "deep nested coll"
+    (is (core/valid? {:name "Leo"
+                      :address {:current { :country "Australia"}
+                                :past [{:country "Spain"} {:country "Brasil"}]}}
+                     (core/every [:address :past] #(not (nil? (:country %))))))
+    
+    (is (not (core/valid? {:name "Leo"
+                           :address {:current { :country "Australia"}
+                                     :past [{:country "Spain"} {:country nil}]}}
+                          (core/every [:address :past] #(not (nil? (:country %)))))))))
