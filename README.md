@@ -4,21 +4,7 @@ A tiny Clojure library for validating maps (or records).
 
 ## Motivation
 
-Skip this section and go straight to *Usage* if you don't care about monads.
-
-There are a couple of clojure validation libraries already out there so why would I write a new one? Well:
-
-- Writing Clojure is fun!
-
-- Because of Monads!
-
-While deepening my knowledge about functional programming the inevitable subject of monads came about - [I wrote a tutorial on the topic in case you're interested](http://www.leonardoborges.com/writings/2012/11/30/monads-in-small-bites-part-i-functors/).
-
-After learning what they are and thinking about the validation problem for a while, I couldn't help but notice that the problem had a lot in common with the [State Monad](http://www.haskell.org/haskellwiki/State_Monad) - namely the fact that I want, as the map is being validated, to collect all validation errors that happened on the way.
-
-So I decided to leverage all of the machinery provided by the wonderful [algo.monads](https://github.com/clojure/algo.monads/) library and build *bouncer* on top of its [State Monad](https://github.com/clojure/algo.monads/blob/master/src/main/clojure/clojure/algo/monads.clj#L395).
-
-In the end this might be useful as one more answer to the question *What are monads useful for?*
+Check [this blog post](http://www.google.com) where I explain in detail the motivation behind this library
 
 ## Usage
 
@@ -40,11 +26,24 @@ Or if you're using maven:
 
 *bouncer* provides two main functions, `validate` and `valid?`
 
+`valid?` is a convenience function built on top of `validate`:
+
+```clojure
+(b/valid? {:name nil}
+    (b/required [:name]))
+;; true
+```
+
 `validate` takes a map and one or more validation functions - the library ships with a couple - and returns a vector. 
 
 The first element in this vector contains a map of the error messages, whereas the second element contains the original map, augmented with the error messages.
 
-Here's an example:
+Let's look at a few examples:
+
+### Basic validations
+
+Below is an example where we're validating that a given map has a value for both the keys `:name` and `age`.
+
 
 ```clojure
 (require '[bouncer.core :as b])
@@ -59,7 +58,9 @@ Here's an example:
 ;;  {:name "Leo", :errors {:age ("age must be present")}}]
 ```
 
-Error messages can be customized:
+As you can see, since age is missing, it's listed in the errors map with the appropriate error messages.
+
+Error messages can be customized - e.g: in case you need them internationalized: 
 
 ```clojure
 (b/validate person
@@ -69,7 +70,9 @@ Error messages can be customized:
 ;;  {:name "Leo", :errors {:age ("Idade é um atributo obrigatório")}}]
 ```
 
-Nested maps can easily be validated:
+### Validating nested maps
+
+Nested maps can easily be validated as well, using the built-in validators:
 
 ```clojure
 (def person-1 
@@ -87,18 +90,48 @@ Nested maps can easily be validated:
 ;;   :address {:country "Brazil", :postcode "invalid", :street nil}}]
 ```
 
-`valid?` is a convenience function built on top of `validate`:
+### Multiple validation errors
+
+If any of the entries fails more than one validation, all error messages are returned in a list like so:
 
 ```clojure
-(b/valid? person-1
+(b/validate person-1
     (b/required [:address :street])
-    (b/number   [:address :postcode]))
-;; false
+    (b/number   [:address :postcode])
+    (b/positive   [:address :postcode]))
 
-(b/valid? person
-    (b/required [:name]))
-;; true
+;;[{:address {:postcode ("postcode must be a positive number" "postcode must be a number"), 
+;;  :street ("street must be present")}} 
+;;
+;;  {:errors {:address {:postcode ("postcode must be a positive number" "postcode must be a number"), ;;   :street ("street must be present")}}, 
+;;     :address {:country "Brazil", :postcode "invalid", :street nil}}]
 ```
+The error map now contains the path `[:address :postcode]`, which is a list with all validation errors for that entry.
+
+### Validating collections
+
+Sometimes it's useful to perform simple, ad-hoc checks in collections contained within a map. For that purpose, *bouncer* provides `every`. 
+
+As with the other validators, it takes a key (or a vector) as the first argument. This time however, the value in the given key/path must be a collection (vector, list etc...)
+
+`every` also takes a predicate function as its second argument. It will be invoked for every item in the collection, making sure they all pass.
+
+Let's see it in action:
+
+```clojure
+(def person-with-pets {:name "Leo" 
+                       :pets [{:name nil}
+                              {:name "Gandalf"}]})
+
+(core/validate person-with-pets
+          (core/every :pets #(not (nil? (:name %)))))
+
+;;[{:pets ("All items in pets must satisfy the predicate")} 
+;; {:name "Leo", :pets [{:name nil} {:name "Gandalf"}], 
+;; :errors {:pets ("All items in pets must satisfy the predicate")}}]
+```
+
+
 
 ## Built-in validations
 
@@ -110,13 +143,15 @@ Nested maps can easily be validated:
 
 - `bouncer.core/positive`
 
+- `bouncer.core/every` (for ad-hoc validation of collections)
+
 Pull requests with more validators are welcome - if you wish to contribute, make sure you read the next section.
 
 ## Writing custom validators
 
-The `bouncer.core` namespace includes a function called `mk-validator`.
+The `bouncer.core` namespace includes a function called `mk-validator`. It is responsible for turning a predicate, key and an optional message into a valid validating function.
 
-Your validation function will probably want to call it. From the docstring:
+As such, your custom validators will probably want to call it. From its docstring:
 
 ```clojure
 -------------------------
@@ -134,12 +169,32 @@ bouncer.core/mk-validator
 As an example, here's a simplified version of the `bouncer.core/number` validator:
 
 ```clojure
-(defn number
-  ([k]
-     (number k (format "%s must be a number" (name k))))
-  ([k msg]
-     (mk-validator number? k msg :optional true)))
+(defn my-number-validator [k]
+    (b/mk-validator number? k (format "%s must be a number" (name k)) :optional true))
 ```
+
+You can see its usage is fairly simple. 
+
+First we create a function that receives the key in with we'll find the value we would like to make sure is a number.
+
+Then we call `mk-validator` with the following arguments:
+
+- the predicate function `number?` from Clojure core;
+- the key `k` received as an argument;
+- a message to be added to the errors map in case the validation fails;
+- and we set the optional argument to true, making sure this validation only runs if the key has a value in the map
+
+Using it is then straightforward:
+
+```clojure
+(b/validate {:postcode "NaN"}
+    (my-number-validator :postcode))
+
+;; [{:postcode ("postcode must be a number")} 
+;;  {:errors {:postcode ("postcode must be a number")}, :postcode "NaN"}]
+```
+
+Feedback to both this library and this guide is welcome.
 
 ## License
 

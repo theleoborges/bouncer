@@ -21,8 +21,9 @@
     (is (not (core/valid? {}
                           (core/required :age)
                           (core/number :age))))
-    (is (not (core/valid? {:age ""}
-                          (core/number :age))))
+    (is (not (core/valid? {:age "invalid"}
+                          (core/number :age)
+                          (core/positive :age))))
     (is (core/valid? {:age nil}
                      (core/number :age)))
     (is (core/valid? {:age 10}

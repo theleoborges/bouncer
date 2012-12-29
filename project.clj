@@ -1,4 +1,4 @@
-(defproject bouncer "0.1.0-SNAPSHOT"
+(defproject bouncer "0.1.1-SNAPSHOT"
   :description "A tiny library for validating maps and records"
   :url "http://github.com/leonardoborges/bouncer"
   :license {:name "MIT License"

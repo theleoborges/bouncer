@@ -68,12 +68,13 @@ If no message is given, a default message will be used"
   ([k]
      (positive k (format "%s must be a positive number" (key->name k))))
   ([k msg]
-     (mk-validator #(> (or % 0) 0) k msg :optional true)))
+     (mk-validator #(and (number? %)
+                         (> % 0)) k msg :optional true)))
 
 (defn every
   "Returns a validation function that checks pred for every item in the collection at key k.
 
-pred can be any function that yields a boolean value for each item it receives.
+pred can be any function that yields a boolean. It will be invoked for every item in the collection.
 
 If k is a vector, it is assumed to be the path in an nested associative structure. In this case, the :errors entry will mirror this path
 
@@ -96,4 +97,4 @@ Returns a vector where the first element is the map of validation errors if any 
 
 (defmacro valid? [& args]
   "Takes a map and one or more validation functions. Returns true if the map passes all validations. False otherwise"
-    `(empty? (first (validate ~@args))))    
+  `(empty? (first (validate ~@args))))
