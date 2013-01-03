@@ -1,33 +1,31 @@
 (ns bouncer.core-test
   (:use clojure.test)
   (:require [bouncer.core :as core]))
-
+(require '[bouncer.core :as core] :reload)
 (deftest validations
   (testing "Required validations"
     (is (not (core/valid? {}
-                          (core/required :name))))
+                          :name core/required)))
     (is (not (core/valid? {:name ""}
-                          (core/required :name))))
+                          :name core/required)))
     (is (not (core/valid? {:name nil}
-                          (core/required :name))))
+                          :name core/required)))
     (is (core/valid? {:name "Leo"}
-                     (core/required :name))))
+                     :name core/required)))
 
   (testing "Number validations"
     ;; map entries are optional by default...
     (is (core/valid? {}
-                     (core/number :age)))
+                     :age core/number))
     ;;unless otherwise specified
     (is (not (core/valid? {}
-                          (core/required :age)
-                          (core/number :age))))
+                          :age [core/required core/number])))
     (is (not (core/valid? {:age "invalid"}
-                          (core/number :age)
-                          (core/positive :age))))
+                          :age [core/number core/positive])))
     (is (core/valid? {:age nil}
-                     (core/number :age)))
+                     :age core/number))
     (is (core/valid? {:age 10}
-                     (core/number :age)))))
+                     :age core/number))))
 
 (def map-no-street {:address {:street nil :country "Brazil"}})
 (def map-with-street (assoc-in map-no-street [:address :street]
@@ -36,35 +34,33 @@
 (deftest nested-maps
   (testing "nested validations"
     (is (not (core/valid? map-no-street
-                          (core/required :address)
-                          (core/required [:address :street]))))
+                          :address core/required
+                          [:address :street] core/required)))
     
     (is (not (core/valid? map-no-street
-                          (core/required [:address :street]))))
+                          [:address :street] core/required)))
     
     (is (core/valid? map-with-street
-                     (core/required :address)
-                     (core/required [:address :street])))
+                     :address core/required
+                     [:address :street] core/required))
     
     (is (core/valid? map-with-street
-                     (core/required [:address :street])))
+                          [:address :street] core/required))
 
     (is (not (core/valid? {}
-                          (core/required [:address :street])))))
+                          [:address :street] core/required))))
 
 
   (testing "optional nested validations"
     (is (core/valid? {:passport {:issue-year 2012}}
-                     (core/number [:passport :issue-year])))
+                     [:passport :issue-year] core/number))
 
     (is (core/valid? {:passport {:issue-year nil}}
-                     (core/number [:passport :issue-year])))
+                     [:passport :issue-year] core/number))
     
     (is (not (core/valid? {:passport {:issue-year nil}}
-                          (core/required [:passport :issue-year])
-                          (core/number [:passport :issue-year]))))))
+                          [:passport :issue-year] [core/required core/number])))))
 
-;;(require '[bouncer.core :as core] :reload)
 
 (defn first-error-for [key validation-result]
   (-> validation-result (first) key (first)))
@@ -74,31 +70,29 @@
     (is (= "name must be present"
            (first-error-for :name
                             (core/validate {}
-                                           (core/required :name)))))
+                                           :name core/required))))
 
     (is (= "age must be present"
            (first-error-for :age
                             (core/validate {}
-                                           (core/required :age)))))
+                                           :age core/required))))
     (is (= "age must be a number"
            (first-error-for :age
                             (core/validate {:age ""}
-                                           (core/number :age)))))
+                                           :age core/number))))
 
     (is (= "age must be a positive number"
            (first-error-for :age
                             (core/validate {:age -7}
-                                           (core/positive :age)))))
+                                           :age core/positive))))
 
     (is (= {
             :age '("age must be a number" "age must be present")
             :name '("name must be present")
             }
            (first (core/validate {:age ""}
-                                 (core/required :name)
-                                 (core/required :age)                              
-                                 (core/number :age))))))
-
+                                 :name core/required
+                                 :age [core/required core/number])))))
 
   (testing "custom messages"
     (is (= {
@@ -107,23 +101,24 @@
             :name '("Nome eh obrigatorio")
             }
            (first (core/validate {:age -1 :year ""}
-                                 (core/required :name "Nome eh obrigatorio")
-                                 (core/required :year "Ano eh obrigatorio")
-                                 (core/number :year "Ano deve ser um numero")
-                                 (core/positive :age "Idade deve ser maior que zero")))))))
+                                 :name (core/required :message "Nome eh obrigatorio")
+                                 :year [(core/required :message "Ano eh obrigatorio")
+                                        (core/number :message "Ano deve ser um numero")]
+                                 :age (core/positive :message "Idade deve ser maior que zero"))
+                  )))))
 
 (deftest validation-result
   (testing "invalid results"
     (let [[result map] (core/validate {:age -1 :year ""}
-                                      (core/required :name)
-                                      (core/required :year)
-                                      (core/number :year)
-                                      (core/positive :age))]
+                                      :name core/required
+                                      :year [core/required core/number]
+                                      :age core/positive)]
       (is (= result (:errors map)))))
 
 
   (testing "valid results"
-    (let [[result map] (core/validate {:name "Leo"} (core/required :name))]
+    (let [[result map] (core/validate {:name "Leo"}
+                                      :name core/required)]
       (is (true? (and (empty? result)
                       (nil? (:errors map))))))))
 
@@ -134,22 +129,23 @@
     
     (testing "nested colls"
       (is (core/valid? valid-map
-                       (core/every :pets #(not (nil? (:name %))))))
+                       :pets (core/every #(not (nil? (:name %))))))
+
+
       
       (is (not (core/valid? invalid-map
-                            (core/every :pets #(not (nil? (:name %))))))))
+                            :pets (core/every #(not (nil? (:name %))))))))
 
     (testing "default messages for nested colls"
       (let [[result map] (core/validate invalid-map
-                                        (core/every :pets #(not (nil? (:name %)))))]
+                                        :pets (core/every #(not (nil? (:name %)))))]
         (is (= "All items in pets must satisfy the predicate"
                (-> result :pets (first))))))
 
     (testing "custom messages for nested colls"
       (let [[result map] (core/validate invalid-map
-                                        (core/every :pets
-                                                    #(not (nil? (:name %)))
-                                                    "All pets must have names"))]
+                                        :pets (core/every #(not (nil? (:name %)))
+                                                          :message "All pets must have names"))]
         (is (= "All pets must have names"
                (-> result :pets (first)))))))
   
@@ -158,13 +154,13 @@
     (is (core/valid? {:name "Leo"
                       :address {:current { :country "Australia"}
                                 :past [{:country "Spain"} {:country "Brasil"}]}}
-                     (core/every [:address :past] #(not (nil? (:country %))))))
+                     [:address :past] (core/every #(not (nil? (:country %))))))
     
     (is (not (core/valid? {:name "Leo"
                            :address {:current { :country "Australia"}
                                      :past [{:country "Spain"} {:country nil}]}}
-                          (core/every [:address :past] #(not (nil? (:country %)))))))))
-
+                          [:address :past] (core/every #(not (nil? (:country %)))))))))
+;;(require '[bouncer.core :as core] :reload)
 (deftest all-validations
   (testing "all built-in validators"
     (let [errors-map {
@@ -180,9 +176,7 @@
                                  :past [{:country nil} {:country "Brasil"}]}}]
       (is (= errors-map
              (first (core/validate invalid-map
-                                   (core/required :name)
-                                   (core/required :age)
-                                   (core/number :age)
-                                   (core/positive [:passport :number])
-                                   (core/every [:address :past]
-                                               #(not (nil? (:country %)))))))))))
+                                   :name core/required
+                                   :age [core/required core/number]
+                                   [:passport :number] core/positive 
+                                   [:address :past] (core/every #(not (nil? (:country %)))))))))))

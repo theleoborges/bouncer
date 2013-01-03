@@ -42,11 +42,11 @@ If k is a vector, it is assumed to be the path in an nested associative structur
 
 If no message is given, a default message will be used"
   ([k]
-     (required k (format "%s must be present" (key->name k))))
-  ([k msg]
+     (required k :message (format "%s must be present" (key->name k))))
+  ([k & {message :message}]
      (mk-validator #(if (string? %)
                       (not (empty? %)) 
-                      (not (nil? %))) k msg)))
+                      (not (nil? %))) k message)))
 
 (defn number
   "Returns a validation function that checks the value for k is a number.
@@ -55,9 +55,9 @@ If k is a vector, it is assumed to be the path in an nested associative structur
 
 If no message is given, a default message will be used"
   ([k]
-     (number k (format "%s must be a number" (key->name k))))
-  ([k msg]
-     (mk-validator number? k msg :optional true)))
+     (number k :message (format "%s must be a number" (key->name k))))
+  ([k & {message :message}]
+     (mk-validator number? k message :optional true)))
 
 (defn positive
   "Returns a validation function that checks the value for k is greater than zero.
@@ -66,10 +66,10 @@ If k is a vector, it is assumed to be the path in an nested associative structur
 
 If no message is given, a default message will be used"
   ([k]
-     (positive k (format "%s must be a positive number" (key->name k))))
-  ([k msg]
+     (positive k :message (format "%s must be a positive number" (key->name k))))
+  ([k & {message :message}]
      (mk-validator #(and (number? %)
-                         (> % 0)) k msg :optional true)))
+                         (> % 0)) k message :optional true)))
 
 (defn every
   "Returns a validation function that checks pred for every item in the collection at key k.
@@ -80,11 +80,11 @@ If k is a vector, it is assumed to be the path in an nested associative structur
 
 If no message is given, a default message will be used"
   ([k pred]
-     (every k pred (format "All items in %s must satisfy the predicate" (key->name k))))
-  ([k pred msg]
-     (mk-validator #(every? pred %) k msg)))
+     (every k pred :message (format "All items in %s must satisfy the predicate" (key->name k))))
+  ([k pred & {message :message}]
+     (mk-validator #(every? pred %) k message)))
 
-(defmacro validate
+(defmacro validate*
   "Validates the map m using the validation functions fs.
 Returns a vector where the first element is the map of validation errors if any and the second is the original map (possibly)augmented with the errors map."
   [m & fs]
@@ -98,3 +98,146 @@ Returns a vector where the first element is the map of validation errors if any 
 (defmacro valid? [& args]
   "Takes a map and one or more validation functions. Returns true if the map passes all validations. False otherwise"
   `(empty? (first (validate ~@args))))
+
+
+
+;; (core/validate invalid-map
+;;                (core/required :name)
+;;                (core/required :age)
+;;                (core/number :age)
+;;                (core/positive [:passport :number])
+;;                (core/every [:address :past]
+;;                            #(not (nil? (:country %)))))
+
+
+;; (core/validate invalid-map
+;;                :name core/required
+;;                :age  [core/required :message "custom"
+;;                       core/number   :message "custom"]
+;;                [:passport :number] core/positive
+;;                [:address :past]    [core/every #(not (nil? (:country %)))]
+;;                )
+
+;; (def my-rest [:name 'required
+;;               :age  ['required :message "custom"
+;;                      'number   :message "custom"]
+;;               [:passport :number] 'positive])
+
+
+
+;; (let [[key fn-or-vec & rest] my-rest]
+;;   (prn "key: " key " - fn-or-vec: " fn-or-vec))
+
+;; (for [rule (partition 2 my-rest)
+;;       :let [[key-or-vec fn-or-vec] rule]]
+;;   (cond
+;;    (vector? fn-or-vec) (prn `(something))
+;;    :else (prn `(~fn-or-vec ~key-or-vec))))
+
+
+;; (defn extract-options [v]
+;;   (apply hash-map (apply concat
+;;                    (take-while #(keyword? (first %))
+;;                                (partition 2 v)))))
+
+;; (defn but-options [v]
+;;   (flatten
+;;    (drop-while #(keyword? (first %))
+;;                (partition-all 2 v))))
+
+;; (extract-options [:pred #{} :message "alh" 'required 'number])
+;; (extract-options [:pred '#{} :message "alh" 'required :ka])
+;; (extract-options [:pred '#(not (nil? (:country %))) :message "alh" 'required 'number])
+;; (extract-options [:message "alh" 'required])
+;; (extract-options ['required])
+
+;; (but-options [:pred #{} :message "alh" 'required 'number])
+;; (but-options [:pred #{} :message "alh" 'required :ka])
+;; (but-options [:message "alh" 'required])
+;; (but-options ['required])
+
+(defn build-multi-step
+  ([key-or-vec fn-vec] (build-multi-step key-or-vec fn-vec []))
+  ([key-or-vec [f-or-list & rest] acc]
+     (if-not f-or-list
+       acc
+       (cond
+        (list? f-or-list)
+        (let [[f & opts] f-or-list]
+          (recur key-or-vec
+                 rest
+                 (conj acc `(~(resolve f) ~key-or-vec ~@opts))))
+        :else (recur key-or-vec
+                     rest
+                     (conj acc `(~(resolve f-or-list) ~key-or-vec)))))))
+
+;;(build-multi-step :name ['required :message "custom" 'number])
+
+(defn build-steps [forms]
+  (reduce (fn [acc [key-or-vec fn-coll :as rule]]
+            (cond
+             (vector? fn-coll) (concat acc (build-multi-step key-or-vec fn-coll))
+             (list? fn-coll) (concat acc (build-multi-step key-or-vec [fn-coll]))
+             :else (conj acc `(~(resolve fn-coll) ~key-or-vec))))
+          []
+          (partition 2 forms)))
+
+;;(build-steps my-rest)
+
+
+
+
+(defmacro validate [m & forms]
+  `(validate* ~m
+             ~@(build-steps forms)))
+
+
+;; (macroexpand-1 '(validate {}
+;;                           :pets [(every #(not (nil? (:name %))))]))
+
+;; (macroexpand-1 '(validate {}
+;;                           :pets (every #(not (nil? (:name %))))))
+
+;; (validate {:pets [{:name nil}]}
+;;                           :pets (every #(not (nil? (:name %)))))
+
+;; (validate {:pets [{:name nil}]}
+;;                        :pets [(every #(not (nil? (:name %))))])
+
+;; (macroexpand-1
+;;  '(validate {} :name required
+;;                 :age  [(required :message "custom")
+;;                        number]
+;;                 [:passport :number] (positive :message "positive you idiot!")
+;;                 [:address :past] [(every #(not (nil? (:country %)))
+;;                                          :message "all past addresses must have a country")]))
+
+;; (validate {} :name required
+;;                 :age  [(required :message "custom")
+;;                        number]
+;;                 [:another :one] required
+;;                 [:passport :number] (positive :message "positive you idiot!")
+;;                 [:address :past] [(every #(not (nil? (:country %)))
+;;                                          :message "all past addresses must have a country")])
+
+;; (valid? {} :name required
+;;                 :age  [(required :message "custom")
+;;                        number]
+;;                 [:another :one] required
+;;                 [:passport :number] (positive :message "positive you idiot!")
+;;                 [:address :past] [(every #(not (nil? (:country %)))
+;;                                          :message "all past addresses must have a country")])
+
+;; (def person {:address {:past [{:country nil} {:country "Brazil"}]}})
+;; (new-validate person
+;;               :name required
+;;               :age  [required :message "custom"
+;;                      number]
+;;               [:passport :number] positive
+;;               [:address :past]    [every #(not (nil? (:country %)))
+;;                                          :message "all past addresses must have a country"])
+
+
+
+;; (def person {:age "leo"})
+
