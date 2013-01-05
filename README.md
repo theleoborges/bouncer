@@ -2,6 +2,20 @@
 
 A tiny Clojure library for validating maps (or records).
 
+## Table of Contents
+
+* [Motivation](#motivation)
+* [Basic validations](#basic-validations)
+* [Validating nested maps](#validating-nested-maps)
+* [Multiple validation errors](#multiple-validation-errors)
+* [Custom validators using arbitrary functions](#custom-validations-using-arbitrary-functions)
+* [Writing validators](#writing-validators)
+* [Built-in validators](#built-in-validations)
+* [Composability: validator sets](#composability-validator-sets)
+* [Contributing](#contributing)
+* [TODO](#todo)
+* [License](#license)
+
 ## Motivation
 
 Check [this blog post](http://www.leonardoborges.com/writings/2013/01/04/bouncer-validation-lib-for-clojure/) where I explain in detail the motivation behind this library
