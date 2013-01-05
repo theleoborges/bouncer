@@ -5,14 +5,17 @@ A tiny Clojure library for validating maps (or records).
 ## Table of Contents
 
 * [Motivation](#motivation)
-* [Basic validations](#basic-validations)
-* [Validating nested maps](#validating-nested-maps)
-* [Multiple validation errors](#multiple-validation-errors)
-* [Validating collections](#validating-collections)
-* [Custom validators using arbitrary functions](#custom-validations-using-arbitrary-functions)
-* [Writing validators](#writing-validators)
+* [Setup](#setup)
+* [Usage](#usage)
+    * [Basic validations](#basic-validations)
+    * [Validating nested maps](#validating-nested-maps)
+    * [Multiple validation errors](#multiple-validation-errors)
+    * [Validating collections](#validating-collections)
+* [Composability: validator sets](#composability-validator-sets)    
+* [Customization](#customization)
+    * [Custom validators using arbitrary functions](#custom-validations-using-arbitrary-functions)
+    * [Writing validators](#writing-validators)
 * [Built-in validators](#built-in-validations)
-* [Composability: validator sets](#composability-validator-sets)
 * [Contributing](#contributing)
 * [TODO](#todo)
 * [License](#license)
@@ -21,7 +24,7 @@ A tiny Clojure library for validating maps (or records).
 
 Check [this blog post](http://www.leonardoborges.com/writings/2013/01/04/bouncer-validation-lib-for-clojure/) where I explain in detail the motivation behind this library
 
-## Usage
+## Setup
 
 If you're using leiningen, add it as a dependency to your project:
 
@@ -61,6 +64,8 @@ Then, require the library:
 The first element in this vector contains a map of the error messages, whereas the second element contains the original map, augmented with the error messages.
 
 Let's look at a few examples:
+
+## Usage
 
 ### Basic validations
 
@@ -156,6 +161,41 @@ Let's see it in action:
 
 All we need to do is provide a predicate function to `every`. It will be invoked for every item in the collection, making sure they all pass.
 
+## Composability: validator sets
+
+If you find yourself repeating a set of validators over and over, chances are you will want to encapsulate that somehow. The macro `bouncer.validators/defvalidatorset` does just that:
+
+```clojure
+(use '[bouncer.validators :only [defvalidatorset]])
+
+;; first we define the set of validators we want to use
+(defvalidatorset addr-validator-set
+  :postcode [v/required v/number]
+  :street    v/required
+  :country   v/required)
+
+;;just something to validate
+(def person {:address {
+                :postcode ""
+                :country "Brazil"}})
+
+;;now we compose the validators
+(b/validate person
+            :name    v/required
+            :address addr-validator-set)
+
+;;[{:address 
+;;    {:postcode ("postcode must be a number" "postcode must be present"), 
+;;     :street ("street must be present")}, 
+;;     :name ("name must be present")} 
+;; 
+;; {:errors {:address {:postcode ("postcode must be a number" "postcode must be present"), 
+;;  :street ("street must be present")}, :name ("name must be present")}, 
+;;  :address {:country "Brazil", :postcode ""}}]
+```
+
+## Customization
+
 ### Custom validations using arbitrary functions
 
 Much like the collections validations above, *bouncer* gives you the ability to use arbitrary functions as predicates for validations through the `custom` built-in validator. Its usage should be familiar:
@@ -227,39 +267,6 @@ I didn't spend a whole lot of time on *bouncer* so it only ships with the valida
 - `bouncer.validators/custom` (for ad-hoc validations)
 
 - `bouncer.validators/every` (for ad-hoc validation of collections. All items must match the provided predicate)
-
-## Composability: validator sets
-
-If you find yourself repeating a set of validators over and over, chances are you will want to encapsulate that somehow. The macro `bouncer.validators/defvalidatorset` does just that:
-
-```clojure
-(use '[bouncer.validators :only [defvalidatorset]])
-
-;; first we define the set of validators we want to use
-(defvalidatorset addr-validator-set
-  :postcode [v/required v/number]
-  :street    v/required
-  :country   v/required)
-
-;;just something to validate
-(def person {:address {
-                :postcode ""
-                :country "Brazil"}})
-
-;;now we compose the validators
-(b/validate person
-            :name    v/required
-            :address addr-validator-set)
-
-;;[{:address 
-;;    {:postcode ("postcode must be a number" "postcode must be present"), 
-;;     :street ("street must be present")}, 
-;;     :name ("name must be present")} 
-;; 
-;; {:errors {:address {:postcode ("postcode must be a number" "postcode must be present"), 
-;;  :street ("street must be present")}, :name ("name must be present")}, 
-;;  :address {:country "Brazil", :postcode ""}}]
-```
 
 ## Contributing
 
