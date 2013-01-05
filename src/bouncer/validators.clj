@@ -36,7 +36,7 @@ A validator can also be marked optional, in which case the validation will only 
 
 
 (defmacro defvalidator
-  "Defines a new validating functions using args & body semantics as provided by \"defn\".
+  "Defines a new validating function using args & body semantics as provided by \"defn\".
   docstring and opts-map are optional
 
   opts-map is a map of key-value pairs and may be one of:
@@ -165,7 +165,17 @@ If no message is given, a default message will be used"
      (mk-validator #(every? pred %) k message)))
 
 
-(defmacro defvalidatorset [name & forms]
-  "Defines a set of validators encapsulating a reusable validation unit."
+(defmacro defvalidatorset
+  "Defines a set of validators encapsulating a reusable validation unit.
+
+  forms should follow the semantics of \"bouncer.core/validate\"
+
+  e.g.:
+    (defvalidatorset addr-validator-set
+      :postcode  [v/required v/number]
+      :street    v/required
+      :country   v/required)
+"
+  [name & forms]
   `(def ~(with-meta name {:bouncer-validator-set true})
      '(~@(w/postwalk h/resolve-or-same forms))))

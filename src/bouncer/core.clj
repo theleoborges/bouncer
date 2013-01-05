@@ -72,7 +72,7 @@ Returns a vector where the first element is the map of validation errors if any 
                  ~(assoc fns-pairs (- (count fns-pairs) 2) result)
                  ~result) ~m)))
 
-(defmacro validate [m & forms]
+(defmacro validate
   "Validates the map m using the validations specified by forms.
 
   forms is a sequence of key/value pairs where:
@@ -94,9 +94,11 @@ Returns a vector where the first element is the map of validation errors if any 
 
   Returns a vector where the first element is the map of validation errors if any and the second is the original map (possibly)augmented with the errors map.
 "
+  [m & forms]
   `(validate* ~m
               ~@(build-steps forms)))
 
-(defmacro valid? [& args]
-  "Takes a map and one or more validation functions. Returns true if the map passes all validations. False otherwise"
+(defmacro valid?
+  "Takes a map and one or more validation functions with semantics provided by \"validate\". Returns true if the map passes all validations. False otherwise"
+  [& args]
   `(empty? (first (validate ~@args))))
