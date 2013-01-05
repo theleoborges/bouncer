@@ -213,6 +213,38 @@ I didn't spend a whole lot of time on *bouncer* so it only ships with the valida
 
 - `bouncer.validators/every` (for ad-hoc validation of collections. All items must match the provided predicate)
 
+## Composability: validator sets
+
+If you find yourself repeating a set of validators over and over, chances are you will want to encapsulate that somehow. The macro `bouncer.validators/defvalidatorset` does just that:
+
+```clojure
+(use '[bouncer.validators :only [defvalidatorset]])
+
+;; first we define the set of validators we want to use
+(defvalidatorset addr-validator-set
+  :postcode [v/required v/number]
+  :street    v/required
+  :country   v/required)
+
+;;just something to validate
+(def person {:address {
+                :postcode ""
+                :country "Brazil"}})
+
+;;now we compose the validators
+(b/validate person
+            :name    v/required
+            :address addr-validator-set)
+
+;;[{:address 
+;;    {:postcode ("postcode must be a number" "postcode must be present"), 
+;;     :street ("street must be present")}, 
+;;     :name ("name must be present")} 
+;; 
+;; {:errors {:address {:postcode ("postcode must be a number" "postcode must be present"), 
+;;  :street ("street must be present")}, :name ("name must be present")}, 
+;;  :address {:country "Brazil", :postcode ""}}]
+```
 
 ## Contributing
 
@@ -221,6 +253,12 @@ Pull requests of bug fixes and new validators are most welcome.
 Note that if you wish your validator to be merged and considered *built-in* you must implement it using the macro `defvalidator` shown above.
 
 Feedback to both this library and this guide is welcome.
+
+## TODO
+
+- Allow `defvalidatorset` to encapsulate top level validator sets - including nested sets
+- Add more validators (help is appreciated here)
+
 
 ## License
 

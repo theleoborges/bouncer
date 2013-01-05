@@ -12,8 +12,23 @@
   :past      (v/every #(not(nil? (:country %)))))
 
 
+(defvalidatorset addr-validator-set+custom-messages
+  :postcode [(v/required :message "required") (v/number :message "number")]
+  :street    (v/required :message "required")
+  :country   (v/required :message "required")
+  :past      (v/every #(not(nil? (:country %))) :message "every"))
+
 (deftest validator-sets
   (testing "composable validators"
+    (is (core/valid? {:address {:postcode 2000
+                                  :street   "Crown St"
+                                  :country  "Australia"
+                                  :past [{:country "Spain"} {:country "Brazil"}]}}
+                     :address addr-validator-set))
+
+    (is (not (core/valid? {}
+                       :address addr-validator-set)))
+    
     (let [errors-map {:address {
                                 :postcode '("postcode must be a number"
                                             "postcode must be present")
@@ -26,8 +41,22 @@
       (is (= errors-map
              (first (core/validate invalid-map
                                    :address addr-validator-set))))))
+
+  (testing "custom messages in validator sets"
+    (let [errors-map {:address {
+                                :postcode '("number"
+                                            "required")
+                                :street    '("required")
+                                :country   '("required")
+                                :past '("every")
+                                }}
+          invalid-map {:address {:postcode ""
+                                 :past [{:country nil} {:country "Brasil"}]}}]
+      (is (= errors-map
+             (first (core/validate invalid-map
+                                   :address addr-validator-set+custom-messages))))))
   
-  (testing "validator sets and standard validators"
+  (testing "validator sets and standard validators together"
     (let [errors-map {:age '("age isn't 29" "age must be a number" "age must be present")
                       :name '("name must be present")
                       :passport {:number '("number must be a positive number")}
