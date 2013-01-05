@@ -1,5 +1,8 @@
 (ns bouncer.core
-  (require [clojure.algo.monads :as m]))
+  (:require [clojure.algo.monads :as m]
+            [bouncer.helpers :as h]))
+
+
 
 (defn build-multi-step
   ([key-or-vec fn-vec] (build-multi-step key-or-vec fn-vec []))
@@ -11,17 +14,50 @@
         (let [[f & opts] f-or-list]
           (recur key-or-vec
                  rest
-                 (conj acc `(~(resolve f) ~key-or-vec ~@opts))))
+                 (conj acc `(~(h/resolve-or-same f) ~key-or-vec ~@opts))))
+
         :else (recur key-or-vec
                      rest
-                     (conj acc `(~(resolve f-or-list) ~key-or-vec)))))))
+                     (conj acc `(~(h/resolve-or-same f-or-list) ~key-or-vec)))))))
+
+(def is-validator-set? (comp true?
+                             :bouncer-validator-set
+                             meta
+                             h/resolve-or-same))
+
+(defn merge-path
+  "Takes two arguments:
+
+  - parent-keyword is a a keyword - or a vector of :keywords denoting a path in a associative structire
+  - coll is a seq of forms following following this spec:
+
+    (:keyword [f g] :another-keyword h)
+
+  Merges :parent-keyword every first element of coll, transforming coll into:
+
+    ([:parent-keyword :keyword] [f g] [:parent-keyword :another-keyword] h)
+"
+  [parent-key coll]
+  (let [pairs (partition 2 coll)]
+    (mapcat #(if (vector? (first %))
+               [(apply vector parent-key (first %)) (second %)]
+               [(vector parent-key (first %)) (second %)])
+            pairs)))
 
 (defn build-steps [forms]
-  (reduce (fn [acc [key-or-vec fn-coll :as rule]]
+  (reduce (fn [acc [key-or-vec sym-or-coll :as rule]]
             (cond
-             (vector? fn-coll) (concat acc (build-multi-step key-or-vec fn-coll))
-             (list? fn-coll) (concat acc (build-multi-step key-or-vec [fn-coll]))
-             :else (conj acc `(~(resolve fn-coll) ~key-or-vec))))
+             (vector? sym-or-coll)
+             (concat acc (build-multi-step key-or-vec sym-or-coll))
+             
+             (list? sym-or-coll)
+             (concat acc (build-multi-step key-or-vec [sym-or-coll]))
+             
+             (is-validator-set? sym-or-coll)
+             (concat acc (build-steps (merge-path key-or-vec
+                                                  (var-get (h/resolve-or-same sym-or-coll)))))
+
+             :else (conj acc `(~(h/resolve-or-same sym-or-coll) ~key-or-vec))))
           []
           (partition 2 forms)))
 

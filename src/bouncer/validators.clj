@@ -1,4 +1,6 @@
-(ns bouncer.validators)
+(ns bouncer.validators
+  (:require [clojure.walk :as w]
+            [bouncer.helpers :as h]))
 
 (defn mk-validator
   "Returns a validation function that will use (pred (k m)) to determine if m is valid. msg will be added to the :errors entry in invalid scenarios.
@@ -105,7 +107,7 @@ A validator can also be marked optional, in which case the validation will only 
 
 
 (defvalidator positive
-  " Validating function that checks its only argument is greater than.
+  " Validating function that checks its only argument is greater than zero.
 
   The resulting function takes a key k.
 
@@ -120,6 +122,21 @@ A validator can also be marked optional, in which case the validation will only 
   [number]
   (and (number? number)
        (> number 0)))
+
+
+(defvalidator custom
+  " Validating function that checks its only argument is greater than zero.
+
+  The resulting function takes a key k.
+
+  If k is a vector, it is assumed to be the path in an nested associative structure. In this case, the :errors entry will mirror this path
+
+  opts is an optional sequence of named arguments and may be one of:
+    - :message the message to be added to the :errors map should this validation fail
+  
+  If no message is given, a default message will be used
+"
+  [])
 
 (defn custom
   "Returns a validation function that checks pred for every item in the collection at key k.
@@ -146,3 +163,9 @@ If no message is given, a default message will be used"
      (every k pred :message (format "All items in %s must satisfy the predicate" (key->name k))))
   ([k pred & {message :message}]
      (mk-validator #(every? pred %) k message)))
+
+
+(defmacro defvalidatorset [name & forms]
+  "Defines a set of validators encapsulating a reusable validation unit."
+  `(def ~(with-meta name {:bouncer-validator-set true})
+     '(~@(w/postwalk h/resolve-or-same forms))))
