@@ -8,6 +8,7 @@ A tiny Clojure library for validating maps (or records).
 * [Basic validations](#basic-validations)
 * [Validating nested maps](#validating-nested-maps)
 * [Multiple validation errors](#multiple-validation-errors)
+* [Validating collections](#validating-collections)
 * [Custom validators using arbitrary functions](#custom-validations-using-arbitrary-functions)
 * [Writing validators](#writing-validators)
 * [Built-in validators](#built-in-validations)
