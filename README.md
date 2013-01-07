@@ -18,7 +18,7 @@ A tiny Clojure library for validating maps (or records).
 * [Built-in validators](#built-in-validations)
 * [Contributing](#contributing)
 * [TODO](#todo)
-* [CHANGELOG](CHANGELOG.md)
+* [CHANGELOG](#changelog)
 * [License](#license)
 
 ## Motivation
@@ -281,6 +281,10 @@ Feedback to both this library and this guide is welcome.
 
 - Allow `defvalidatorset` to encapsulate top level validator sets - including nested sets
 - Add more validators (help is appreciated here)
+
+## CHANGELOG
+
+Check the CHANGELOG.md file in the project root
 
 ## License
 
