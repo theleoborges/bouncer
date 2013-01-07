@@ -11,13 +11,14 @@ A tiny Clojure library for validating maps (or records).
     * [Validating nested maps](#validating-nested-maps)
     * [Multiple validation errors](#multiple-validation-errors)
     * [Validating collections](#validating-collections)
-* [Composability: validator sets](#composability-validator-sets)    
+* [Composability: validator sets](#composability-validator-sets)
 * [Customization](#customization)
     * [Custom validators using arbitrary functions](#custom-validations-using-arbitrary-functions)
     * [Writing validators](#writing-validators)
 * [Built-in validators](#built-in-validations)
 * [Contributing](#contributing)
 * [TODO](#todo)
+* [CHANGELOG](CHANGELOG.md)
 * [License](#license)
 
 ## Motivation
@@ -280,7 +281,6 @@ Feedback to both this library and this guide is welcome.
 
 - Allow `defvalidatorset` to encapsulate top level validator sets - including nested sets
 - Add more validators (help is appreciated here)
-
 
 ## License
 
