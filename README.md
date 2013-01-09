@@ -19,7 +19,7 @@ A tiny Clojure library for validating maps (or records).
 * [Built-in validators](#built-in-validations)
 * [Contributing](#contributing)
 * [TODO](#todo)
-* [CHANGELOG](bouncer/tree/master/CHANGELOG.md)
+* [CHANGELOG](https://github.com/leonardoborges/bouncer/blob/master/CHANGELOG.md)
 * [License](#license)
 
 ## Motivation
@@ -289,7 +289,7 @@ I didn't spend a whole lot of time on *bouncer* so it only ships with the valida
 
 - `bouncer.validators/positive`
 
-- `bouncer.validators/in`
+- `bouncer.validators/member`
 
 - `bouncer.validators/custom` (for ad-hoc validations)
 
