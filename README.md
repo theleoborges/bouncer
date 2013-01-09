@@ -4,6 +4,7 @@ A tiny Clojure library for validating maps (or records).
 
 ## Table of Contents
 
+* [API Docs](http://leonardoborges.github.com/bouncer/)
 * [Motivation](#motivation)
 * [Setup](#setup)
 * [Usage](#usage)
