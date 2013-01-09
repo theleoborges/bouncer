@@ -166,7 +166,7 @@
 (deftest all-validations
   (testing "all built-in validators"
     (let [errors-map {
-                      :age '("age isn't 29" "age must be a number" "age must be present")
+                      :age '("age out of range" "age isn't 29" "age must be a number" "age must be present")
                       :name '("name must be present")
                       :passport {:number '("number must be a positive number")}
                       :address {:past '("All items in past must satisfy the predicate")}
@@ -181,6 +181,7 @@
                                    :name v/required
                                    :age [v/required
                                          v/number
-                                         (v/custom #(= 29 %) :message "age isn't 29")]
+                                         (v/custom #(= 29 %) :message "age isn't 29")
+                                         (v/member (range 5))]
                                    [:passport :number] v/positive 
                                    [:address :past] (v/every #(not (nil? (:country %)))))))))))

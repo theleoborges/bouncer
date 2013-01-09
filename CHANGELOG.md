@@ -1,3 +1,12 @@
+## 0.2.2 (UNRELEASED)
+
+- `defvalidator` now accepts an arbitrary number arguments.
+- All validators are now implemented using `defvalidator`
+- New validators:
+	- `member` - validates the value is a member of the provided collection
+- Updated most validators' docstrings to something less confusing
+- Added API documentation using marginalia. See the `docs` folder.
+
 ## 0.2.1 (07/01/2013)
 
 - One step towards composability: new 'defvalidatorset' macro that lets the user encapsulate common validation patterns into reusable units.

@@ -1,8 +1,25 @@
 (ns bouncer.core
+  "The `core` namespace provides the two main validation macros in bouncer:
+
+  - `validate`
+  - `valid`
+
+
+All other functions are meant for internal use only and shouldn't be relied on.
+
+The project [README](https://github.com/leonardoborges/bouncer/blob/master/README.md) should get you started,
+it's pretty comprehensive.
+
+
+If you'd like to know more about the motivation behind `bouncer`, check the
+[announcement post](http://www.leonardoborges.com/writings/2013/01/04/bouncer-validation-lib-for-clojure/)."
+  {:author "Leonardo Borges"}
   (:require [clojure.algo.monads :as m]
             [bouncer.helpers :as h]))
 
 
+
+;; ## Internal utility functions
 
 (defn build-multi-step
   ([key-or-vec fn-vec] (build-multi-step key-or-vec fn-vec []))
@@ -28,14 +45,18 @@
 (defn merge-path
   "Takes two arguments:
 
-  - parent-keyword is a a keyword - or a vector of :keywords denoting a path in a associative structire
-  - coll is a seq of forms following following this spec:
+  `parent-keyword` is a a keyword - or a vector of :keywords denoting a path in a associative structure
 
-    (:keyword [f g] :another-keyword h)
+  `coll` is a seq of forms following this spec:
 
-  Merges :parent-keyword every first element of coll, transforming coll into:
 
-    ([:parent-keyword :keyword] [f g] [:parent-keyword :another-keyword] h)
+      (:keyword [f g] :another-keyword h)
+
+
+  Merges `:parent-keyword` with every first element of coll, transforming coll into:
+
+
+      ([:parent-keyword :keyword] [f g] [:parent-keyword :another-keyword] h)
 "
   [parent-key coll]
   (let [pairs (partition 2 coll)]
@@ -62,7 +83,7 @@
           (partition 2 forms)))
 
 (defmacro validate*
-  "Internal User. Validates the map m using the validation functions fs.
+  "Internal use. Validates the map m using the validation functions fs.
 Returns a vector where the first element is the map of validation errors if any and the second is the original map (possibly)augmented with the errors map."
   [m & fs]
   (let [ignore (gensym "ignore__")
@@ -71,6 +92,8 @@ Returns a vector where the first element is the map of validation errors if any 
     `((m/domonad m/state-m
                  ~(assoc fns-pairs (- (count fns-pairs) 2) result)
                  ~result) ~m)))
+
+;; ## Public validation macros
 
 (defmacro validate
   "Validates the map m using the validations specified by forms.
@@ -86,7 +109,7 @@ Returns a vector where the first element is the map of validation errors if any 
 
   e.g.:
 
-  (core/validate a-map
+      (core/validate a-map
                :name core/required
                :age [core/required
                      (core/number :message \"age must be a number\")]

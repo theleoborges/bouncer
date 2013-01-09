@@ -12,13 +12,14 @@ A tiny Clojure library for validating maps (or records).
     * [Multiple validation errors](#multiple-validation-errors)
     * [Validating collections](#validating-collections)
 * [Composability: validator sets](#composability-validator-sets)
-* [Customization](#customization)
+* [Customization support](#customization-support)
     * [Custom validators using arbitrary functions](#custom-validations-using-arbitrary-functions)
     * [Writing validators](#writing-validators)
+    	* [Validators and arbitrary number of arguments](#validators-and-arbitrary-number-of-arguments)
 * [Built-in validators](#built-in-validations)
 * [Contributing](#contributing)
 * [TODO](#todo)
-* [CHANGELOG](#changelog)
+* [CHANGELOG](CHANGELOG.md)
 * [License](#license)
 
 ## Motivation
@@ -195,7 +196,7 @@ If you find yourself repeating a set of validators over and over, chances are yo
 ;;  :address {:country "Brazil", :postcode ""}}]
 ```
 
-## Customization
+## Customization Support
 
 ### Custom validations using arbitrary functions
 
@@ -255,6 +256,29 @@ As you'd expect, the message can be customized as well:
           :postcode (my-number-validator :message "must be a number"))
 ```
 
+### Validators and arbitrary number of arguments
+
+Your validators aren't limited to a single argument though. 
+
+Since *v0.2.2*, `defvalidator` takes an arbitrary number of arguments. The only thing you need to be aware is that the value being validated will **always** be the first argument you list. Let's see an example with the `in` validator:
+
+```clojure
+(defvalidator member
+  [value coll]
+  (some #{value} coll))
+```
+
+Yup, it's that *simple*. Let's use it:
+
+```clojure
+(def kid {:age 10})
+
+(b/validate kid
+			:age (member (range 5)))
+```
+
+In the example above, the validator will be called with `10` - that's the value the key `:age` holds - and `(0 1 2 3 4)` - which is the result of `(range 5)` and will be fed as the second argument to the validator.
+
 ## Built-in validations
 
 I didn't spend a whole lot of time on *bouncer* so it only ships with the validations I've needed myself. At the moment they live in the validators namespace:
@@ -265,9 +289,12 @@ I didn't spend a whole lot of time on *bouncer* so it only ships with the valida
 
 - `bouncer.validators/positive`
 
+- `bouncer.validators/in`
+
 - `bouncer.validators/custom` (for ad-hoc validations)
 
 - `bouncer.validators/every` (for ad-hoc validation of collections. All items must match the provided predicate)
+
 
 ## Contributing
 
@@ -281,10 +308,6 @@ Feedback to both this library and this guide is welcome.
 
 - Allow `defvalidatorset` to encapsulate top level validator sets - including nested sets
 - Add more validators (help is appreciated here)
-
-## CHANGELOG
-
-Check the CHANGELOG.md file in the project root
 
 ## License
 

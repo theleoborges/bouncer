@@ -80,3 +80,12 @@
                                          (v/custom #(= 29 %) :message "age isn't 29")]
                                    [:passport :number] v/positive 
                                    :address addr-validator-set)))))))
+
+
+
+(deftest range-validator
+  (testing "presence of value in the given range"
+    (is (core/valid? {:age 4}
+                  :age (v/member (range 5))))
+    (is (not (core/valid? {:age 5}
+                          :age (v/member (range 5)))))))
