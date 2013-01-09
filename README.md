@@ -19,7 +19,7 @@ A tiny Clojure library for validating maps (or records).
 * [Built-in validators](#built-in-validations)
 * [Contributing](#contributing)
 * [TODO](#todo)
-* [CHANGELOG](CHANGELOG.md)
+* [CHANGELOG](bouncer/tree/master/CHANGELOG.md)
 * [License](#license)
 
 ## Motivation
