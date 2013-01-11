@@ -16,7 +16,7 @@ A tiny Clojure library for validating maps (or records).
 * [Customization support](#customization-support)
     * [Custom validators using arbitrary functions](#custom-validations-using-arbitrary-functions)
     * [Writing validators](#writing-validators)
-    	* [Validators and arbitrary number of arguments](#validators-and-arbitrary-number-of-arguments)
+        * [Validators and arbitrary number of arguments](#validators-and-arbitrary-number-of-arguments)
 * [Built-in validators](#built-in-validations)
 * [Contributing](#contributing)
 * [TODO](#todo)
@@ -35,7 +35,7 @@ If you're using leiningen, add it as a dependency to your project:
 [bouncer "0.2.0"]
 ```
 
-Or if you're using maven: 
+Or if you're using maven:
 
 ```xml
 <dependency>
@@ -62,7 +62,7 @@ Then, require the library:
 ;; false
 ```
 
-`validate` takes a map and one or more validation forms and returns a vector. 
+`validate` takes a map and one or more validation forms and returns a vector.
 
 The first element in this vector contains a map of the error messages, whereas the second element contains the original map, augmented with the error messages.
 
@@ -84,20 +84,20 @@ Below is an example where we're validating that a given map has a value for both
     :name v/required
     :age  v/required)
 
-;; [{:age ("age must be present")} 
-;;  {:name "Leo", :errors {:age ("age must be present")}}]
+;; [{:age ("age must be present")}
+;;  {:name "Leo", :bouncer.validators/errors {:age ("age must be present")}}]
 ```
 
 As you can see, since age is missing, it's listed in the errors map with the appropriate error messages.
 
-Error messages can be customized by providing a `:message` option - e.g: in case you need them internationalized: 
+Error messages can be customized by providing a `:message` option - e.g: in case you need them internationalized:
 
 ```clojure
 (b/validate person
     :age (v/required :message "Idade é um atributo obrigatório"))
 
-;; [{:age ("Idade é um atributo obrigatório")} 
-;;  {:name "Leo", :errors {:age ("Idade é um atributo obrigatório")}}]
+;; [{:age ("Idade é um atributo obrigatório")}
+;;  {:name "Leo", :bouncer.validators/errors {:age ("Idade é um atributo obrigatório")}}]
 ```
 
 ### Validating nested maps
@@ -105,19 +105,25 @@ Error messages can be customized by providing a `:message` option - e.g: in case
 Nested maps can easily be validated as well, using the built-in validators:
 
 ```clojure
-(def person-1 
-    {:address 
-        {:street nil 
+(def person-1
+    {:address
+        {:street nil
          :country "Brazil"
-         :postcode "invalid"}})
+         :postcode "invalid"
+         :phone "foobar"}})
 
 (b/validate person-1
     [:address :street]   v/required
-    [:address :postcode] v/number)
+    [:address :postcode] v/number
+    [:address :phone] (v/regex #"^\d+$"))
 
-;; [{:address {:postcode ("postcode must be a number"), :street ("street must be present")}} 
-;;  {:errors {:address {:postcode ("postcode must be a number"), :street ("street must be present")}},
-;;   :address {:country "Brazil", :postcode "invalid", :street nil}}]
+;; [{:address {:phone ("phone must satisfy the regular expression"),
+;;             :postcode ("postcode must be a number"),
+;;             :street ("street must be present")}}
+;;  {:bouncer.validators/errors {:address {:phone ("phone must satisfy the regular expression"),
+;;                               :postcode ("postcode must be a number"),
+;;                               :street ("street must be present")}},
+;;   :address {:country "Brazil", :postcode "invalid", :street nil, :phone "foobar"}}]
 ```
 
 In the example above, the vector of keys is assumed to be the path in an associative structure.
@@ -131,11 +137,11 @@ If any of the entries fails more than one validation, all error messages are ret
     [:address :street] v/required
     [:address :postcode] [v/number v/positive])
 
-;;[{:address {:postcode ("postcode must be a positive number" "postcode must be a number"), 
-;;  :street ("street must be present")}} 
+;;[{:address {:postcode ("postcode must be a positive number" "postcode must be a number"),
+;;  :street ("street must be present")}}
 ;;
-;;  {:errors {:address {:postcode ("postcode must be a positive number" "postcode must be a number"), ;;   :street ("street must be present")}}, 
-;;     :address {:country "Brazil", :postcode "invalid", :street nil}}]
+;;  {:bouncer.validators/errors {:address {:postcode ("postcode must be a positive number" "postcode must be a number"), ;;   :street ("street must be present")}},
+;;     :address {:country "Brazil", :postcode "invalid", :street nil :phone "foobar"}}]
 ```
 The error map now contains the path `[:address :postcode]`, which is a list with all validation errors for that entry.
 
@@ -143,23 +149,23 @@ Also note that if we need multiple validations against any keyword or path, we n
 
 ### Validating collections
 
-Sometimes it's useful to perform simple, ad-hoc checks in collections contained within a map. For that purpose, *bouncer* provides `every`. 
+Sometimes it's useful to perform simple, ad-hoc checks in collections contained within a map. For that purpose, *bouncer* provides `every`.
 
 Its usage is similar to the validators seen so far. This time however, the value in the given key/path must be a collection (vector, list etc...)
 
 Let's see it in action:
 
 ```clojure
-(def person-with-pets {:name "Leo" 
+(def person-with-pets {:name "Leo"
                        :pets [{:name nil}
                               {:name "Gandalf"}]})
 
 (b/validate person-with-pets
           :pets (v/every #(not (nil? (:name %)))))
 
-;;[{:pets ("All items in pets must satisfy the predicate")} 
-;; {:name "Leo", :pets [{:name nil} {:name "Gandalf"}], 
-;; :errors {:pets ("All items in pets must satisfy the predicate")}}]
+;;[{:pets ("All items in pets must satisfy the predicate")}
+;; {:name "Leo", :pets [{:name nil} {:name "Gandalf"}],
+;; :bouncer.validators/errors {:pets ("All items in pets must satisfy the predicate")}}]
 ```
 
 All we need to do is provide a predicate function to `every`. It will be invoked for every item in the collection, making sure they all pass.
@@ -187,13 +193,13 @@ If you find yourself repeating a set of validators over and over, chances are yo
             :name    v/required
             :address addr-validator-set)
 
-;;[{:address 
-;;    {:postcode ("postcode must be a number" "postcode must be present"), 
-;;     :street ("street must be present")}, 
-;;     :name ("name must be present")} 
-;; 
-;; {:errors {:address {:postcode ("postcode must be a number" "postcode must be present"), 
-;;  :street ("street must be present")}, :name ("name must be present")}, 
+;;[{:address
+;;    {:postcode ("postcode must be a number" "postcode must be present"),
+;;     :street ("street must be present")},
+;;     :name ("name must be present")}
+;;
+;; {:bouncer.validators/errors {:address {:postcode ("postcode must be a number" "postcode must be present"),
+;;  :street ("street must be present")}, :name ("name must be present")},
 ;;  :address {:country "Brazil", :postcode ""}}]
 ```
 
@@ -210,13 +216,13 @@ Much like the collections validations above, *bouncer* gives you the ability to 
 (b/validate {:age 29}
           :age (v/custom young? :message "Too old!"))
 
-;; [{:age ("Too old!")} 
-;;  {:errors {:age ("Too old!")}, :age 29}]
+;; [{:age ("Too old!")}
+;;  {:bouncer.validators/errors {:age ("Too old!")}, :age 29}]
 ```
 
 ### Writing validators
 
-Another way - and the preferred one - to provide custom validations is to use the macro `defvalidator` in the `bouncer.validators` namespace. 
+Another way - and the preferred one - to provide custom validations is to use the macro `defvalidator` in the `bouncer.validators` namespace.
 
 The advantage of this approach is that your validator can be used in the same way built-in validators are - there's no need to use `bouncer.validators/custom`.
 
@@ -246,8 +252,8 @@ Using it is then straightforward:
           :postcode my-number-validator)
 
 
-;; [{:postcode ("postcode must be a number")} 
-;;  {:errors {:postcode ("postcode must be a number")}, :postcode "NaN"}]
+;; [{:postcode ("postcode must be a number")}
+;;  {:bouncer.validators/errors {:postcode ("postcode must be a number")}, :postcode "NaN"}]
 ```
 
 As you'd expect, the message can be customized as well:
@@ -259,7 +265,7 @@ As you'd expect, the message can be customized as well:
 
 ### Validators and arbitrary number of arguments
 
-Your validators aren't limited to a single argument though. 
+Your validators aren't limited to a single argument though.
 
 Since *v0.2.2*, `defvalidator` takes an arbitrary number of arguments. The only thing you need to be aware is that the value being validated will **always** be the first argument you list. Let's see an example with the `in` validator:
 
@@ -275,7 +281,7 @@ Yup, it's that *simple*. Let's use it:
 (def kid {:age 10})
 
 (b/validate kid
-			:age (member (range 5)))
+            :age (member (range 5)))
 ```
 
 In the example above, the validator will be called with `10` - that's the value the key `:age` holds - and `(0 1 2 3 4)` - which is the result of `(range 5)` and will be fed as the second argument to the validator.
@@ -291,6 +297,8 @@ I didn't spend a whole lot of time on *bouncer* so it only ships with the valida
 - `bouncer.validators/positive`
 
 - `bouncer.validators/member`
+
+- `bouncer.validators/regex` (for matching regular expressions)
 
 - `bouncer.validators/custom` (for ad-hoc validations)
 
