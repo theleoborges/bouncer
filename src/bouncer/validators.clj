@@ -31,11 +31,11 @@
        (letfn [(validate* [value path]
                  (if (not (pred value))
                    (let [new-state (update-in m path #(conj % msg))]
-                     [(:errors new-state) new-state])
-                   [(:errors m #{}) m]))]
+                     [(::errors new-state) new-state])
+                   [(::errors m #{}) m]))]
          (cond
-          (vector? k) (validate* (get-in m k) (cons :errors k))
-          (keyword? k) (validate* (k m) [:errors k]) )))))
+          (vector? k) (validate* (get-in m k) (cons ::errors k))
+          (keyword? k) (validate* (k m) [::errors k]) )))))
 
 
 (defn key->name [k]
@@ -56,7 +56,7 @@
 
   The function will be called with the value being validated as its first argument.
 
-  Any extra arguments will be passed along to the function in the order they were used in the 
+  Any extra arguments will be passed along to the function in the order they were used in the
   \"validate\" call.
 
   e.g.:
@@ -70,7 +70,7 @@
       :age (in (range 5)))
 
 
-  This means the validator `in` will be called with the arguments `10` and `(0 1 2 3 4)`, 
+  This means the validator `in` will be called with the arguments `10` and `(0 1 2 3 4)`,
   in that order.
 
 "
@@ -115,7 +115,7 @@
   {:default-message-format "%s must be present"}
   [value]
   (if (string? value)
-    (not (empty? value)) 
+    (not (empty? value))
     (not (nil? value))))
 
 (defvalidator number
@@ -158,7 +158,7 @@
   For use with validation macros such as `validate` or `valid?`"
   {:default-message-format "All items in %s must satisfy the predicate"}
   [coll pred]
-  (every? pred coll)) 
+  (every? pred coll))
 
 ;; ## Composability
 

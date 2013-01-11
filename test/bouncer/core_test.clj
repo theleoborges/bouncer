@@ -50,14 +50,14 @@
     (is (not (core/valid? map-no-street
                           :address v/required
                           [:address :street] v/required)))
-    
+
     (is (not (core/valid? map-no-street
                           [:address :street] v/required)))
-    
+
     (is (core/valid? map-with-street
                      :address v/required
                      [:address :street] v/required))
-    
+
     (is (core/valid? map-with-street
                           [:address :street] v/required))
 
@@ -71,7 +71,7 @@
 
     (is (core/valid? {:passport {:issue-year nil}}
                      [:passport :issue-year] v/number))
-    
+
     (is (not (core/valid? {:passport {:issue-year nil}}
                           [:passport :issue-year] [v/required v/number])))))
 
@@ -87,7 +87,7 @@
             :name '("name must be present")
             :age '("age must be a positive number")
             }
-           
+
            (first (core/validate {:age -1 :year ""}
                                  :name v/required
                                  :year [v/required v/number]
@@ -115,26 +115,26 @@
                                       :name v/required
                                       :year [v/required v/number]
                                       :age v/positive)]
-      (is (= result (:errors map)))))
+      (is (= result (:bouncer.validators/errors map)))))
 
 
   (testing "valid results"
     (let [[result map] (core/validate {:name "Leo"}
                                       :name v/required)]
       (is (true? (and (empty? result)
-                      (nil? (:errors map))))))))
+                      (nil? (:bouncer.validators/errors map))))))))
 
 
 (deftest coll-validations
   (let [valid-map   {:name "Leo" :pets [{:name "Aragorn"} {:name "Gandalf"}]}
         invalid-map {:name "Leo" :pets [{:name nil} {:name "Gandalf"}]}]
-    
+
     (testing "nested colls"
       (is (core/valid? valid-map
                        :pets (v/every #(not (nil? (:name %))))))
 
 
-      
+
       (is (not (core/valid? invalid-map
                             :pets (v/every #(not (nil? (:name %))))))))
 
@@ -150,14 +150,14 @@
                                                           :message "All pets must have names"))]
         (is (= "All pets must have names"
                (-> result :pets (first)))))))
-  
+
 
   (testing "deep nested coll"
     (is (core/valid? {:name "Leo"
                       :address {:current { :country "Australia"}
                                 :past [{:country "Spain"} {:country "Brasil"}]}}
                      [:address :past] (v/every #(not (nil? (:country %))))))
-    
+
     (is (not (core/valid? {:name "Leo"
                            :address {:current { :country "Australia"}
                                      :past [{:country "Spain"} {:country nil}]}}
@@ -183,5 +183,5 @@
                                          v/number
                                          (v/custom #(= 29 %) :message "age isn't 29")
                                          (v/member (range 5))]
-                                   [:passport :number] v/positive 
+                                   [:passport :number] v/positive
                                    [:address :past] (v/every #(not (nil? (:country %)))))))))))
