@@ -109,15 +109,21 @@ Nested maps can easily be validated as well, using the built-in validators:
     {:address
         {:street nil
          :country "Brazil"
-         :postcode "invalid"}})
+         :postcode "invalid"
+         :phone "foobar"}})
 
 (b/validate person-1
     [:address :street]   v/required
-    [:address :postcode] v/number)
+    [:address :postcode] v/number
+    [:address :phone] (v/regex #"^\d+$"))
 
-;; [{:address {:postcode ("postcode must be a number"), :street ("street must be present")}}
-;;  {:bouncer.validators/errors {:address {:postcode ("postcode must be a number"), :street ("street must be present")}},
-;;   :address {:country "Brazil", :postcode "invalid", :street nil}}]
+;; [{:address {:phone ("phone must satisfy the regular expression"),
+;;             :postcode ("postcode must be a number"),
+;;             :street ("street must be present")}}
+;;  {:bouncer.validators/errors {:address {:phone ("phone must satisfy the regular expression"),
+;;                               :postcode ("postcode must be a number"),
+;;                               :street ("street must be present")}},
+;;   :address {:country "Brazil", :postcode "invalid", :street nil, :phone "foobar"}}]
 ```
 
 In the example above, the vector of keys is assumed to be the path in an associative structure.
@@ -135,7 +141,7 @@ If any of the entries fails more than one validation, all error messages are ret
 ;;  :street ("street must be present")}}
 ;;
 ;;  {:bouncer.validators/errors {:address {:postcode ("postcode must be a positive number" "postcode must be a number"), ;;   :street ("street must be present")}},
-;;     :address {:country "Brazil", :postcode "invalid", :street nil}}]
+;;     :address {:country "Brazil", :postcode "invalid", :street nil :phone "foobar"}}]
 ```
 The error map now contains the path `[:address :postcode]`, which is a list with all validation errors for that entry.
 
@@ -291,6 +297,8 @@ I didn't spend a whole lot of time on *bouncer* so it only ships with the valida
 - `bouncer.validators/positive`
 
 - `bouncer.validators/member`
+
+- `bouncer.validators/regex` (for matching regular expressions)
 
 - `bouncer.validators/custom` (for ad-hoc validations)
 

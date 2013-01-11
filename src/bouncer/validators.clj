@@ -160,6 +160,14 @@
   [coll pred]
   (every? pred coll))
 
+(defvalidator regex
+  "Validates value satisfies regex.
+
+   For use with validation macros such as `validate` or `valid?`"
+  {:default-message-format "%s must satisfy the Regular Expression" :optional true}
+  [value re]
+  (and (string? value) (re-seq re value)))
+
 ;; ## Composability
 
 (defmacro defvalidatorset
