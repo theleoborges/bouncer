@@ -66,8 +66,8 @@
        ([~@args]
           ~@body))))
 
-
 ;; ### Composability
+
 
 (defmacro defvalidatorset
   "Defines a set of validators encapsulating a reusable validation unit.
@@ -141,11 +141,3 @@
   {:default-message-format "All items in %s must satisfy the predicate"}
   [coll pred]
   (every? pred coll))
-
-(defvalidator matches
-  "Validates value satisfies the supplied regex pattern.
-
-   For use with validation macros such as `validate` or `valid?`"
-  {:default-message-format "%s must satisfy given pattern" :optional true}
-  [value pattern]
-  (and (string? value) (re-seq pattern value)))
