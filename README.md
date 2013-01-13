@@ -84,8 +84,13 @@ Below is an example where we're validating that a given map has a value for both
     :name v/required
     :age  v/required)
 
+<<<<<<< HEAD
 ;; [{:age ("age must be present")}
 ;;  {:name "Leo", :bouncer.validators/errors {:age ("age must be present")}}]
+=======
+;; [{:age ("age must be present")} 
+;;  {:name "Leo", :bouncer.core/errors {:age ("age must be present")}}]
+>>>>>>> Added short circuit for validators.
 ```
 
 As you can see, since age is missing, it's listed in the errors map with the appropriate error messages.
@@ -96,8 +101,13 @@ Error messages can be customized by providing a `:message` option - e.g: in case
 (b/validate person
     :age (v/required :message "Idade é um atributo obrigatório"))
 
+<<<<<<< HEAD
 ;; [{:age ("Idade é um atributo obrigatório")}
 ;;  {:name "Leo", :bouncer.validators/errors {:age ("Idade é um atributo obrigatório")}}]
+=======
+;; [{:age ("Idade é um atributo obrigatório")} 
+;;  {:name "Leo", :bouncer.core/errors {:age ("Idade é um atributo obrigatório")}}]
+>>>>>>> Added short circuit for validators.
 ```
 
 ### Validating nested maps
@@ -114,6 +124,7 @@ Nested maps can easily be validated as well, using the built-in validators:
 
 (b/validate person-1
     [:address :street]   v/required
+<<<<<<< HEAD
     [:address :postcode] v/number
     [:address :phone] (v/regex #"^\d+$"))
 
@@ -124,24 +135,49 @@ Nested maps can easily be validated as well, using the built-in validators:
 ;;                               :postcode ("postcode must be a number"),
 ;;                               :street ("street must be present")}},
 ;;   :address {:country "Brazil", :postcode "invalid", :street nil, :phone "foobar"}}]
+=======
+    [:address :postcode] v/number)
+
+;; [{:address {:postcode ("postcode must be a number"), :street ("street must be present")}} 
+;;  {:bouncer.core/errors {:address {:postcode ("postcode must be a number"), :street ("street must be present")}},
+;;   :address {:country "Brazil", :postcode "invalid", :street nil}}]
+>>>>>>> Added short circuit for validators.
 ```
 
 In the example above, the vector of keys is assumed to be the path in an associative structure.
 
 ### Multiple validation errors
 
-If any of the entries fails more than one validation, all error messages are returned in a list like so:
+`bouncer` features a short circuit mechanism for multiple validations within a single field.
+
+For instance, say you're validating a map representing a person and you expect the key `:age` to be `required`, a `number` and also be `positive`:
+
+
+```clojure
+(b/validate {:age nil}
+    :age [v/required v/number v/positive])
+    
+;; [{:age ("age must be present")} {:bouncer.core/errors {:age ("age must be present")}, :age nil}]
+```
+
+As you can see, only the `required` validator was executed. That's what I meant by the short circuit mechanism. As soon as a validation fails, it exits and returns that error, skipping further validators.
+
+However, note this is true within a single map entry. Multiple map entries will have all its messages returned as expected:
 
 ```clojure
 (b/validate person-1
     [:address :street] v/required
     [:address :postcode] [v/number v/positive])
 
+<<<<<<< HEAD
 ;;[{:address {:postcode ("postcode must be a positive number" "postcode must be a number"),
 ;;  :street ("street must be present")}}
 ;;
 ;;  {:bouncer.validators/errors {:address {:postcode ("postcode must be a positive number" "postcode must be a number"), ;;   :street ("street must be present")}},
 ;;     :address {:country "Brazil", :postcode "invalid", :street nil :phone "foobar"}}]
+=======
+;; [{:address {:postcode ("postcode must be a number"), :street ("street must be present")}} {:bouncer.core/errors {:address {:postcode ("postcode must be a number"), :street ("street must be present")}}, :address {:country "Brazil", :postcode "invalid", :street nil}}]
+>>>>>>> Added short circuit for validators.
 ```
 The error map now contains the path `[:address :postcode]`, which is a list with all validation errors for that entry.
 
@@ -163,9 +199,15 @@ Let's see it in action:
 (b/validate person-with-pets
           :pets (v/every #(not (nil? (:name %)))))
 
+<<<<<<< HEAD
 ;;[{:pets ("All items in pets must satisfy the predicate")}
 ;; {:name "Leo", :pets [{:name nil} {:name "Gandalf"}],
 ;; :bouncer.validators/errors {:pets ("All items in pets must satisfy the predicate")}}]
+=======
+;;[{:pets ("All items in pets must satisfy the predicate")} 
+;; {:name "Leo", :pets [{:name nil} {:name "Gandalf"}], 
+;; :bouncer.core/errors {:pets ("All items in pets must satisfy the predicate")}}]
+>>>>>>> Added short circuit for validators.
 ```
 
 All we need to do is provide a predicate function to `every`. It will be invoked for every item in the collection, making sure they all pass.
@@ -193,6 +235,7 @@ If you find yourself repeating a set of validators over and over, chances are yo
             :name    v/required
             :address addr-validator-set)
 
+<<<<<<< HEAD
 ;;[{:address
 ;;    {:postcode ("postcode must be a number" "postcode must be present"),
 ;;     :street ("street must be present")},
@@ -200,6 +243,15 @@ If you find yourself repeating a set of validators over and over, chances are yo
 ;;
 ;; {:bouncer.validators/errors {:address {:postcode ("postcode must be a number" "postcode must be present"),
 ;;  :street ("street must be present")}, :name ("name must be present")},
+=======
+;;[{:address 
+;;    {:postcode ("postcode must be a number" "postcode must be present"), 
+;;     :street ("street must be present")}, 
+;;     :name ("name must be present")} 
+;; 
+;; {:bouncer.core/errors {:address {:postcode ("postcode must be a number" "postcode must be present"), 
+;;  :street ("street must be present")}, :name ("name must be present")}, 
+>>>>>>> Added short circuit for validators.
 ;;  :address {:country "Brazil", :postcode ""}}]
 ```
 
@@ -216,8 +268,13 @@ Much like the collections validations above, *bouncer* gives you the ability to 
 (b/validate {:age 29}
           :age (v/custom young? :message "Too old!"))
 
+<<<<<<< HEAD
 ;; [{:age ("Too old!")}
 ;;  {:bouncer.validators/errors {:age ("Too old!")}, :age 29}]
+=======
+;; [{:age ("Too old!")} 
+;;  {:bouncer.core/errors {:age ("Too old!")}, :age 29}]
+>>>>>>> Added short circuit for validators.
 ```
 
 ### Writing validators
@@ -252,8 +309,13 @@ Using it is then straightforward:
           :postcode my-number-validator)
 
 
+<<<<<<< HEAD
 ;; [{:postcode ("postcode must be a number")}
 ;;  {:bouncer.validators/errors {:postcode ("postcode must be a number")}, :postcode "NaN"}]
+=======
+;; [{:postcode ("postcode must be a number")} 
+;;  {:bouncer.core/errors {:postcode ("postcode must be a number")}, :postcode "NaN"}]
+>>>>>>> Added short circuit for validators.
 ```
 
 As you'd expect, the message can be customized as well:

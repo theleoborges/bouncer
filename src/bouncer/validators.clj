@@ -9,41 +9,6 @@
 ;;
 ;; The following functions and macros support creating custom validators
 
-(defn mk-validator
-  "Returns a validation function that will use (pred (k m)) to determine if m is valid. msg will be added to the :errors entry in invalid scenarios.
-
-  If k is a vector, it is assumed to be the path in an nested associative structure. In this case, the :errors entry will mirror this path
-
-  A validator can also be marked optional, in which case the validation will only run if k has a value in m.
-
-  e.g.:
-
-    (mk-validator number? k msg :optional true)"
-  ([pred k msg & {optional :optional}]
-     (fn [m]
-       (if (and optional (cond
-                          (vector? k) (not (get-in m k))
-                          (keyword? k) (not (k m))))
-         ((mk-validator (fn [_] true) k msg) m)
-         ((mk-validator pred k msg) m))))
-  ([pred k msg]
-     (fn [m]
-       (letfn [(validate* [value path]
-                 (if (not (pred value))
-                   (let [new-state (update-in m path #(conj % msg))]
-                     [(::errors new-state) new-state])
-                   [(::errors m #{}) m]))]
-         (cond
-          (vector? k) (validate* (get-in m k) (cons ::errors k))
-          (keyword? k) (validate* (k m) [::errors k]) )))))
-
-
-(defn key->name [k]
-  (cond
-   (vector? k) (name (peek k))
-   (keyword? k) (name k)))
-
-
 (defmacro defvalidator
   "Defines a new validating function using args & body semantics as provided by \"defn\".
   docstring and opts-map are optional
@@ -62,7 +27,7 @@
   e.g.:
 
 
-    (defvalidator in
+    (defvalidator member
       [value coll]
       (some #{value} coll))
 
@@ -70,9 +35,8 @@
       :age (in (range 5)))
 
 
-  This means the validator `in` will be called with the arguments `10` and `(0 1 2 3 4)`,
+  This means the validator `member` will be called with the arguments `10` and `(0 1 2 3 4)`, 
   in that order.
-
 "
   {:arglists '([name docstring? opts-map? [args*] & body])}
   [name & options]
@@ -82,25 +46,44 @@
         options (if (string? (first options))
                   (next options)
                   options)
-        {:keys [default-message-format optional]} (if (map? (first options))
-                                                    (first options)
-                                                    {})
+        {
+         :keys [default-message-format optional]
+         :or {
+              default-message-format "Custom validation failed for %s"
+              optional false}
+         } (if (map? (first options))
+             (first options)
+             {})
         options (if (map? (first options))
                   (next options)
                   options)
         [args & body] options
-        [pred-subject & rest] args]
-    `(defn ~(with-meta name {:doc docstring})
+        fn-meta {:doc docstring
+                 :default-message-format default-message-format
+                 :optional optional}]
+    `(defn ~(with-meta name fn-meta)
        {:arglists '([~@args])}
-       ([k# ~@rest]
-          (~name k# ~@rest :message (format (if ~default-message-format
-                                              ~default-message-format
-                                              "Custom validation failed for %s") (key->name k#))))
-       ([k# ~@rest & {message# :message}]
-          (mk-validator (fn [~pred-subject]
-                          (let [~@(mapcat #(vector %1 %2) rest rest)]
-                            ~@body))
-                        k# message# :optional ~optional)))))
+       ([~@args]
+          ~@body))))
+
+
+;; ### Composability
+
+(defmacro defvalidatorset
+  "Defines a set of validators encapsulating a reusable validation unit.
+
+  forms should follow the semantics of \"bouncer.core/validate\"
+
+  e.g.:
+
+    (defvalidatorset addr-validator-set
+      :postcode  [v/required v/number]
+      :street    v/required
+      :country   v/required)
+"
+  [name & forms]
+  `(def ~(with-meta name {:bouncer-validator-set true})
+     '(~@(w/postwalk h/resolve-or-same forms))))
 
 
 ;; ## Built-in validators
@@ -133,15 +116,14 @@
   For use with validation macros such as `validate` or `valid?`"
   {:default-message-format "%s must be a positive number" :optional true}
   [number]
-  (and (number? number)
-       (> number 0)))
+  (> number 0))
 
 
 (defvalidator member
   "Validates value is a member of coll.
 
   For use with validation macros such as `validate` or `valid?`"
-  {:default-message-format "%s out of range"}
+  {:default-message-format "%s must be one of the values in the list"}
   [value coll]
   (some #{value} coll))
 
@@ -160,28 +142,10 @@
   [coll pred]
   (every? pred coll))
 
-(defvalidator regex
-  "Validates value satisfies regex.
+(defvalidator matches
+  "Validates value satisfies the supplied regex pattern.
 
    For use with validation macros such as `validate` or `valid?`"
-  {:default-message-format "%s must satisfy the Regular Expression" :optional true}
-  [value re]
-  (and (string? value) (re-seq re value)))
-
-;; ## Composability
-
-(defmacro defvalidatorset
-  "Defines a set of validators encapsulating a reusable validation unit.
-
-  forms should follow the semantics of \"bouncer.core/validate\"
-
-  e.g.:
-
-    (defvalidatorset addr-validator-set
-      :postcode  [v/required v/number]
-      :street    v/required
-      :country   v/required)
-"
-  [name & forms]
-  `(def ~(with-meta name {:bouncer-validator-set true})
-     '(~@(w/postwalk h/resolve-or-same forms))))
+  {:default-message-format "%s must satisfy given pattern" :optional true}
+  [value pattern]
+  (and (string? value) (re-seq pattern value)))

@@ -1,5 +1,6 @@
 (ns bouncer.core-test
-  (:use clojure.test)
+  (:import java.io.File)
+  (:use clojure.test [bouncer.validators :only [defvalidator]])
   (:require [bouncer
              [core :as core]
              [validators :as v]]))
@@ -83,31 +84,30 @@
   (testing "default messages"
     (is (= {
             :dob '("Custom validation failed for dob")
-            :year '("year must be a number" "year must be present")
+            :year '("year must be a number")
             :name '("name must be present")
             :age '("age must be a positive number")
             }
 
            (first (core/validate {:age -1 :year ""}
                                  :name v/required
-                                 :year [v/required v/number]
+                                 :year v/number
                                  :age v/positive
                                  :dob (v/custom #(not (nil? %))))))))
 
   (testing "custom messages"
     (is (= {
             :age '("Idade deve ser maior que zero")
-            :year '("Ano deve ser um numero" "Ano eh obrigatorio")
+            :year '("Ano eh obrigatorio")
             :name '("Nome eh obrigatorio")
             :dob  '("Nao pode ser nulo")
             }
-           (first (core/validate {:age -1 :year ""}
-                                 :name (v/required :message "Nome eh obrigatorio")
-                                 :year [(v/required :message "Ano eh obrigatorio")
-                                        (v/number :message "Ano deve ser um numero")]
-                                 :age (v/positive :message "Idade deve ser maior que zero")
-                                 :dob (v/custom #(not (nil? %)) :message "Nao pode ser nulo"))
-                  )))))
+           (first
+            (core/validate {:age -1 :year ""}
+                           :name (v/required :message "Nome eh obrigatorio")
+                           :year (v/required :message "Ano eh obrigatorio")
+                           :age (v/positive :message "Idade deve ser maior que zero")
+                           :dob (v/custom #(not (nil? %)) :message "Nao pode ser nulo")))))))
 
 (deftest validation-result
   (testing "invalid results"
@@ -115,15 +115,14 @@
                                       :name v/required
                                       :year [v/required v/number]
                                       :age v/positive)]
-      (is (= result (:bouncer.validators/errors map)))))
+      (is (= result (::core/errors map)))))
 
 
   (testing "valid results"
     (let [[result map] (core/validate {:name "Leo"}
                                       :name v/required)]
       (is (true? (and (empty? result)
-                      (nil? (:bouncer.validators/errors map))))))))
-
+                      (nil? (::core/errors map))))))))
 
 (deftest coll-validations
   (let [valid-map   {:name "Leo" :pets [{:name "Aragorn"} {:name "Gandalf"}]}
@@ -163,25 +162,73 @@
                                      :past [{:country "Spain"} {:country nil}]}}
                           [:address :past] (v/every #(not (nil? (:country %)))))))))
 
+
+(defvalidator directory
+  {:default-message-format "%s must be a valid directory" :optional false}
+  [path]
+  (.isDirectory ^File (clojure.java.io/file path)))
+
+(defvalidator readable
+  {:default-message-format "%s is not readable" :optional false}
+  [path]
+  (.canRead ^File (clojure.java.io/file path)))
+
+(defvalidator writeable
+  {:default-message-format "%s is not writeable" :optional false}
+  [path]
+  (.canRead ^File (clojure.java.io/file path)))
+
+(deftest early-exit
+  (testing "short circuit validations for single entry"
+    (is (= {:age '("age must be present")}
+           (first (core/validate {}
+                                 :age [v/required v/number v/positive]))))
+
+    (is (= {:age '("age must be present")}
+           (first (core/validate {:age ""}
+                                 :age [v/required v/number v/positive]))))
+
+    (is (= {:age '("age must be a number")}
+           (first (core/validate {:age "NaN"}
+                                 :age [v/required v/number v/positive]))))
+
+    (is (= {:age '("age must be a positive number")}
+           (first (core/validate {:age -7}
+                                 :age [v/required v/number v/positive]))))
+
+    (let [config-params {:input-dir "some/directory/path"
+                         :output-dir "some/other/directory/path"}]
+      (is (= {
+              :output-dir '("output-dir must be a valid directory")
+              :input-dir  '("input-dir must be a valid directory")
+              }
+             (first (core/validate config-params
+                                   :input-dir [v/required directory readable]
+                                   :output-dir [v/required directory writeable])))))))
+
 (deftest all-validations
   (testing "all built-in validators"
     (let [errors-map {
-                      :age '("age out of range" "age isn't 29" "age must be a number" "age must be present")
-                      :name '("name must be present")
+                      :age    '("age must be present")
+                      :mobile '("wrong format")
+                      :car    '("car must be one of the values in the list")
+                      :dob    '("dob must be a number")
+                      :name   '("name must be present")
                       :passport {:number '("number must be a positive number")}
-                      :address {:past '("All items in past must satisfy the predicate")}
+                      :address  {:past   '("All items in past must satisfy the predicate")}
                       }
           invalid-map {:name nil
                        :age ""
                        :passport {:number -7 :issued_by "Australia"}
+                       :dob "NaN"
                        :address {:current { :country "Australia"}
                                  :past [{:country nil} {:country "Brasil"}]}}]
       (is (= errors-map
              (first (core/validate invalid-map
                                    :name v/required
-                                   :age [v/required
-                                         v/number
-                                         (v/custom #(= 29 %) :message "age isn't 29")
-                                         (v/member (range 5))]
-                                   [:passport :number] v/positive
+                                   :age v/required
+                                   :mobile (v/custom #(string? %) :message "wrong format")
+                                   :car (v/member ["Ferrari" "Mustang" "Mini"])
+                                   :dob v/number
+                                   [:passport :number] v/positive 
                                    [:address :past] (v/every #(not (nil? (:country %)))))))))))

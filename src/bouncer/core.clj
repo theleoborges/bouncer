@@ -31,11 +31,11 @@ If you'd like to know more about the motivation behind `bouncer`, check the
         (let [[f & opts] f-or-list]
           (recur key-or-vec
                  rest
-                 (conj acc `(~(h/resolve-or-same f) ~key-or-vec ~@opts))))
+                 (conj acc `[~(h/resolve-or-same f) ~key-or-vec ~@opts])))
 
         :else (recur key-or-vec
                      rest
-                     (conj acc `(~(h/resolve-or-same f-or-list) ~key-or-vec)))))))
+                     (conj acc `[~(h/resolve-or-same f-or-list) ~key-or-vec]))))))
 
 (def is-validator-set? (comp true?
                              :bouncer-validator-set
@@ -78,22 +78,82 @@ If you'd like to know more about the motivation behind `bouncer`, check the
              (concat acc (build-steps (merge-path key-or-vec
                                                   (var-get (h/resolve-or-same sym-or-coll)))))
 
-             :else (conj acc `(~(h/resolve-or-same sym-or-coll) ~key-or-vec))))
+             :else (conj acc `[~(h/resolve-or-same sym-or-coll) ~key-or-vec])))
           []
           (partition 2 forms)))
 
+(defn wrap
+  "Wraps pred in the context of validating a single value
+
+  - `acc`  is the map being validated
+
+  - `pred` is a validator
+
+  - `k`    the path to the value to be validated in the associative structure acc
+
+  - `args` any extra args to pred
+
+  It only runs pred if:
+
+  - the validator is optional *and* there is a non-nil value to be validated (this information is read from pred's metadata)
+
+  - there are no previous erros for the given path
+
+  Returns `acc` augmented with a namespace qualified ::errors keyword
+"
+  [acc [pred k & args]]
+  (let [pred (h/resolve-or-same pred)
+        k (if (vector? k) k [k])
+        error-path (cons ::errors k)
+        {:keys [default-message-format optional]} (meta pred)
+        [args {
+               :keys [message] :or
+               {message default-message-format}}] (split-with (complement keyword?) args)
+        pred-subject (get-in acc k)]
+    (if (or (and optional (nil? pred-subject))
+            (not (empty? (get-in acc error-path)))
+            (apply pred pred-subject args))
+      acc
+      (update-in acc error-path
+                 #(conj % (format message (name (peek k))))))))
+
+(defn wrap-chain
+  "Internal Use.
+
+  Chain of responsibility.
+
+  Takes a collection of validators `fs` and returns a `state monad`-compatible function.
+
+  This function will run all validators against `old-state` and eventually return a vector with the result - the errors map - and the new state - the original map augmented with the errors map.
+
+  See also `wrap`
+"
+  [fs]
+  (fn [old-state]
+    (let [new-state (reduce wrap
+                            old-state
+                            fs)]
+      [(::errors new-state) new-state])))
+
+(defn emit-wrap [entry]
+  `(wrap-chain ~(second entry)))
+
 (defmacro validate*
-  "Internal use. Validates the map m using the validation functions fs.
-Returns a vector where the first element is the map of validation errors if any and the second is the original map (possibly)augmented with the errors map."
+  "Internal use.
+
+  Validates the map m using the validation functions fs.
+
+  Returns a vector where the first element is the map of validation errors if any and the second is the original map (possibly)augmented with the errors map."
   [m & fs]
   (let [ignore (gensym "ignore__")
         result (gensym "result__")
-        fns-pairs (vec (interleave (repeat (count fs) ignore) fs))]
+        wrap-calls (map emit-wrap fs)
+        step-pairs (vec (interleave (repeat ignore) wrap-calls))]
     `((m/domonad m/state-m
-                 ~(assoc fns-pairs (- (count fns-pairs) 2) result)
+                 ~(assoc step-pairs (- (count step-pairs) 2) result)
                  ~result) ~m)))
 
-;; ## Public validation macros
+;; ## Public API
 
 (defmacro validate
   "Validates the map m using the validations specified by forms.
@@ -119,7 +179,7 @@ Returns a vector where the first element is the map of validation errors if any 
 "
   [m & forms]
   `(validate* ~m
-              ~@(build-steps forms)))
+              ~@(group-by second (build-steps forms))))
 
 (defmacro valid?
   "Takes a map and one or more validation functions with semantics provided by \"validate\". Returns true if the map passes all validations. False otherwise"

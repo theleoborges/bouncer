@@ -30,8 +30,7 @@
                        :address addr-validator-set)))
     
     (let [errors-map {:address {
-                                :postcode '("postcode must be a number"
-                                            "postcode must be present")
+                                :postcode '("postcode must be present")
                                 :street    '("street must be present")
                                 :country   '("country must be present")
                                 :past '("All items in past must satisfy the predicate")
@@ -44,8 +43,7 @@
 
   (testing "custom messages in validator sets"
     (let [errors-map {:address {
-                                :postcode '("number"
-                                            "required")
+                                :postcode '("required")
                                 :street    '("required")
                                 :country   '("required")
                                 :past '("every")
@@ -57,12 +55,11 @@
                                    :address addr-validator-set+custom-messages))))))
   
   (testing "validator sets and standard validators together"
-    (let [errors-map {:age '("age isn't 29" "age must be a number" "age must be present")
+    (let [errors-map {:age '("required")
                       :name '("name must be present")
                       :passport {:number '("number must be a positive number")}
                       :address {
-                                :postcode '("postcode must be a number"
-                                            "postcode must be present")
+                                :postcode '("postcode must be a number")
                                 :street    '("street must be present")
                                 :country   '("country must be present")
                                 :past '("All items in past must satisfy the predicate")
@@ -70,14 +67,12 @@
           invalid-map {:name nil
                        :age ""
                        :passport {:number -7 :issued_by "Australia"}
-                       :address {:postcode ""
+                       :address {:postcode "NaN"
                                  :past [{:country nil} {:country "Brasil"}]}}]
       (is (= errors-map
              (first (core/validate invalid-map
                                    :name v/required
-                                   :age [v/required
-                                         v/number
-                                         (v/custom #(= 29 %) :message "age isn't 29")]
+                                   :age (v/custom (complement empty?) :message "required")
                                    [:passport :number] v/positive 
                                    :address addr-validator-set)))))))
 

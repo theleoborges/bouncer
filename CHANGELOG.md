@@ -1,11 +1,23 @@
 ## 0.2.2 (UNRELEASED)
 
-- `defvalidator` now accepts an arbitrary number arguments.
+- `defvalidator` now lets you define validators with arbitrary number of arguments.
 - All validators are now implemented using `defvalidator`
 - New validators:
 	- `member` - validates the value is a member of the provided collection
 - Updated most validators' docstrings to something less confusing
-- Added API documentation using marginalia. See the `docs` folder.
+- Added API documentation using marginalia. See the `docs` folder or [this link](http://leonardoborges.github.com/bouncer/).
+- bouncer now stores the error messages in the qualified keyword `:bouncer.core/errors`
+  
+  For short, just use an alias:
+
+
+   ```clojure
+  (require '[bouncer.core :as c])
+  ;; then somewhere you want to inspect the errors map
+  
+  (::c/errors a-map)
+  
+  ```
 
 ## 0.2.1 (07/01/2013)
 
