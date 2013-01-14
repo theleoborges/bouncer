@@ -141,3 +141,11 @@
   {:default-message-format "All items in %s must satisfy the predicate"}
   [coll pred]
   (every? pred coll))
+
+(defvalidator matches
+  "Validates value satisfies the given regex pattern.
+
+   For use with validation macros such as `validate` or `valid?`"
+  {:default-message-format "%s must satisfy the given pattern" :optional true}
+  [value re]
+  ((complement empty?) (re-seq re value)))

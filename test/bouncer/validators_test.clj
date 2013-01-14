@@ -84,3 +84,10 @@
                   :age (v/member (range 5))))
     (is (not (core/valid? {:age 5}
                           :age (v/member (range 5)))))))
+
+(deftest regex-validator
+  (testing "matching the given pattern"
+    (is (core/valid? {:phone "555"}
+                  :phone (v/matches #"^\d+$")))
+    (is (not (core/valid? {:phone "NaN"}
+                  :phone (v/matches #"^\d+$"))))))
