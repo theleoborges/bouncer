@@ -19,6 +19,7 @@
   (::c/errors a-map)
   
   ```
+- short-circuit for validators: if a map entry has multiple validators, it stops at the first failure, moving on to the next map entry.
 
 ## 0.2.1 (07/01/2013)
 
