@@ -1,4 +1,4 @@
-# bouncer
+# bouncer [![Travis CI status](https://api.travis-ci.org/leonardoborges/bouncer.png)](http://travis-ci.org/#!/leonardoborges/bouncer/builds)
 
 A tiny Clojure library for validating maps (or records).
 
