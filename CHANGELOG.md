@@ -20,6 +20,8 @@
   
   ```
 - short-circuit for validators: if a map entry has multiple validators, it stops at the first failure, moving on to the next map entry.
+- fixed destructuring bug when using Clojure 1.5 (thanks to [Gary Johnson](gwjohnso@uvm.edu) for reporting it)
+- using leiningen profiles to build against Clojure 1.3, 1.4 and 1.5
 
 ## 0.2.1 (07/01/2013)
 

@@ -3028,7 +3028,7 @@ net.brehaut.ClojureTools = (function (SH) {
     build_tree: build_tree
   };
 })(SyntaxHighlighter);
-</script><title>bouncer -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">bouncer</h1><h2 class="project-version">0.2.2-RC1</h2><br /><p>A validation library for Clojure apps</p>
+</script><title>bouncer -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">bouncer</h1><h2 class="project-version">0.2.2-RC2</h2><br /><p>A validation library for Clojure apps</p>
 </div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.4.0</td></tr><tr><td class="dep-name">org.clojure/algo.monads</td><td class="dotted"><hr /></td><td class="dep-version">0.1.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#bouncer.core">bouncer.core</a></li><li><a href="#bouncer.helpers">bouncer.helpers</a></li><li><a href="#bouncer.validators">bouncer.validators</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#bouncer.core" name="bouncer.core"><h1 class="project-name">bouncer.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>The <code>core</code> namespace provides the two main validation macros in bouncer:</p>
 
 <ul>
@@ -3107,7 +3107,7 @@ it's pretty comprehensive.</p>
 
 <p>It only runs pred if:</p></li>
 <li><p>the validator is optional <em>and</em> there is a non-nil value to be validated (this information is read from pred's metadata)</p></li>
-<li><p>there are no previous erros for the given path</p>
+<li><p>there are no previous errors for the given path</p>
 
 <p>Returns <code>acc</code> augmented with a namespace qualified ::errors keyword</p></li>
 </ul>
@@ -3117,9 +3117,8 @@ it's pretty comprehensive.</p>
         k (if (vector? k) k [k])
         error-path (cons ::errors k)
         {:keys [default-message-format optional]} (meta pred)
-        [args {
-               :keys [message] :or
-               {message default-message-format}}] (split-with (complement keyword?) args)
+        [args opts] (split-with (complement keyword?) args)
+        {:keys [message] :or {message default-message-format}} (apply hash-map opts)
         pred-subject (get-in acc k)]
     (if (or (and optional (nil? pred-subject))
             (not (empty? (get-in acc error-path)))

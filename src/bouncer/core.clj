@@ -97,7 +97,7 @@ If you'd like to know more about the motivation behind `bouncer`, check the
 
   - the validator is optional *and* there is a non-nil value to be validated (this information is read from pred's metadata)
 
-  - there are no previous erros for the given path
+  - there are no previous errors for the given path
 
   Returns `acc` augmented with a namespace qualified ::errors keyword
 "
@@ -106,9 +106,8 @@ If you'd like to know more about the motivation behind `bouncer`, check the
         k (if (vector? k) k [k])
         error-path (cons ::errors k)
         {:keys [default-message-format optional]} (meta pred)
-        [args {
-               :keys [message] :or
-               {message default-message-format}}] (split-with (complement keyword?) args)
+        [args opts] (split-with (complement keyword?) args)
+        {:keys [message] :or {message default-message-format}} (apply hash-map opts)
         pred-subject (get-in acc k)]
     (if (or (and optional (nil? pred-subject))
             (not (empty? (get-in acc error-path)))
