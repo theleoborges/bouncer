@@ -4,9 +4,10 @@
 - All validators are now implemented using `defvalidator`
 - New validators:
 	- `member` - validates the value is a member of the provided collection
+	- `matches`- regex validation (thanks to [ghoseb](https://github.com/ghoseb))
 - Updated most validators' docstrings to something less confusing
 - Added API documentation using marginalia. See the `docs` folder or [this link](http://leonardoborges.github.com/bouncer/).
-- bouncer now stores the error messages in the qualified keyword `:bouncer.core/errors`
+- bouncer now stores the error messages in the qualified keyword `:bouncer.core/errors` (thanks to [ghoseb](https://github.com/ghoseb))
   
   For short, just use an alias:
 

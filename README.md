@@ -21,6 +21,7 @@ A tiny Clojure library for validating maps (or records).
 * [Contributing](#contributing)
 * [TODO](#todo)
 * [CHANGELOG](https://github.com/leonardoborges/bouncer/blob/master/CHANGELOG.md)
+* [CONTRIBUTORS](#contributors)
 * [License](#license)
 
 ## Motivation
@@ -318,7 +319,6 @@ I didn't spend a whole lot of time on *bouncer* so it only ships with the valida
 
 - `bouncer.validators/every` (for ad-hoc validation of collections. All items must match the provided predicate)
 
-
 ## Contributing
 
 Pull requests of bug fixes and new validators are most welcome.
@@ -331,6 +331,11 @@ Feedback to both this library and this guide is welcome.
 
 - Allow `defvalidatorset` to encapsulate top level validator sets - including nested sets
 - Add more validators (help is appreciated here)
+
+## CONTRIBUTORS
+
+- [leonardoborges](https://github.com/leonardoborges)
+- [ghoseb](https://github.com/ghoseb)
 
 ## License
 
