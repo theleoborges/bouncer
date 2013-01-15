@@ -1,4 +1,4 @@
-## 0.2.2 (UNRELEASED)
+## 0.2.2 (16/01/2013)
 
 - `defvalidator` now lets you define validators with arbitrary number of arguments.
 - All validators are now implemented using `defvalidator`
