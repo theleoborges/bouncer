@@ -157,11 +157,12 @@ If you'd like to know more about the motivation behind `bouncer`, check the
 (defmacro validate
   "Validates the map m using the validations specified by forms.
 
-  forms is a sequence of key/value pairs where:
+  forms can be a single validator set or a sequence of key/value pairs where:
 
   key   ==> :keyword or [:a :path]
 
   value ==> validation-function or
+            validator-set or
            (validation-function args+opts) or
            [validation-function another-validation-function] or
            [validation-function (another-validation-function args+opts)]
@@ -174,13 +175,19 @@ If you'd like to know more about the motivation behind `bouncer`, check the
                      (core/number :message \"age must be a number\")]
                [:passport :number] core/positive)
 
+
   Returns a vector where the first element is the map of validation errors if any and the second is the original map (possibly)augmented with the errors map.
+
+  See also `defvalidatorset`
 "
   [m & forms]
-  `(validate* ~m
-              ~@(group-by second (build-steps forms))))
+  (if (= (count forms) 1)
+    `(validate* ~m
+                ~@(group-by second (build-steps (var-get (h/resolve-or-same (first forms))))))
+    `(validate* ~m
+                ~@(group-by second (build-steps forms)))))
 
 (defmacro valid?
-  "Takes a map and one or more validation functions with semantics provided by \"validate\". Returns true if the map passes all validations. False otherwise"
+  "Takes a map and one or more validation functions with semantics provided by \"validate\". Returns true if the map passes all validations. False otherwise."
   [& args]
   `(empty? (first (validate ~@args))))

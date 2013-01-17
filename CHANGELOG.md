@@ -1,3 +1,7 @@
+## 0.2.3 (UNRELEASED)
+
+- Validator sets can now be used at the top level call to `validate` and `valid?`.
+
 ## 0.2.2 (16/01/2013)
 
 - `defvalidator` now lets you define validators with arbitrary number of arguments.

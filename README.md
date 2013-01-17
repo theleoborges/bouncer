@@ -186,7 +186,8 @@ All we need to do is provide a predicate function to `every`. It will be invoked
 
 ## Composability: validator sets
 
-If you find yourself repeating a set of validators over and over, chances are you will want to encapsulate that somehow. The macro `bouncer.validators/defvalidatorset` does just that:
+If you find yourself repeating a set of validators over and over, chances are you will want to group and compose them somehow. The macro `bouncer.validators/defvalidatorset` does just that:
+
 
 ```clojure
 (use '[bouncer.validators :only [defvalidatorset]])
@@ -215,6 +216,24 @@ If you find yourself repeating a set of validators over and over, chances are yo
 ;; {:bouncer.core/errors {:address {:postcode ("postcode must be a number" "postcode must be present"), 
 ;;  :street ("street must be present")}, :name ("name must be present")}, 
 ;;  :address {:country "Brazil", :postcode ""}}]
+```
+
+Validator sets can also be composed together and used as a top level validation as shown below:
+
+
+```clojure
+(defvalidatorset address-validator
+  :postcode v/required)
+
+(defvalidatorset person-validator
+  :name v/required
+  :age [v/required v/number]
+  :address address-validator)
+  
+(core/validate {}
+			   person-validator)
+			   
+;;[{:address {:postcode ("postcode must be present")}, :age ("age must be present"), :name ("name must be present")} {:bouncer.core/errors {:address {:postcode ("postcode must be present")}, :age ("age must be present"), :name ("name must be present")}}]
 ```
 
 ## Customization Support
@@ -282,7 +301,7 @@ As you'd expect, the message can be customized as well:
 
 Your validators aren't limited to a single argument though.
 
-Since *v0.2.2*, `defvalidator` takes an arbitrary number of arguments. The only thing you need to be aware is that the value being validated will **always** be the first argument you list. Let's see an example with the `in` validator:
+Since *v0.2.2*, `defvalidator` takes an arbitrary number of arguments. The only thing you need to be aware is that the value being validated will **always** be the first argument you list. Let's see an example with the `member` validator:
 
 ```clojure
 (defvalidator member
@@ -329,7 +348,6 @@ Feedback to both this library and this guide is welcome.
 
 ## TODO
 
-- Allow `defvalidatorset` to encapsulate top level validator sets - including nested sets
 - Add more validators (help is appreciated here)
 
 ## CONTRIBUTORS

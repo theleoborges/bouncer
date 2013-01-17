@@ -80,6 +80,10 @@
       :postcode  [v/required v/number]
       :street    v/required
       :country   v/required)
+
+    (defvalidatorset person-validator-set
+      :name  [v/required v/number]
+      :address addr-validator-set)
 "
   [name & forms]
   `(def ~(with-meta name {:bouncer-validator-set true})

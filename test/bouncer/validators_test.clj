@@ -11,15 +11,24 @@
   :country   v/required
   :past      (v/every #(not(nil? (:country %)))))
 
-
 (defvalidatorset addr-validator-set+custom-messages
   :postcode [(v/required :message "required") (v/number :message "number")]
   :street    (v/required :message "required")
   :country   (v/required :message "required")
   :past      (v/every #(not(nil? (:country %))) :message "every"))
 
+
+(defvalidatorset address-validator
+  :postcode v/required)
+
+(defvalidatorset person-validator
+  :name v/required
+  :age [v/required v/number]
+  :address address-validator)
+
+
 (deftest validator-sets
-  (testing "composable validators"
+  (testing "validator sets for nested maps"
     (is (core/valid? {:address {:postcode 2000
                                   :street   "Crown St"
                                   :country  "Australia"
@@ -40,7 +49,7 @@
       (is (= errors-map
              (first (core/validate invalid-map
                                    :address addr-validator-set))))))
-
+  
   (testing "custom messages in validator sets"
     (let [errors-map {:address {
                                 :postcode '("required")
@@ -74,7 +83,23 @@
                                    :name v/required
                                    :age (v/custom (complement empty?) :message "required")
                                    [:passport :number] v/positive 
-                                   :address addr-validator-set)))))))
+                                   :address addr-validator-set))))))
+
+  (testing "composing validator sets at the top level"
+    (is (core/valid? {:address {:postcode 2000}
+                      :name "Leo"
+                      :age 29}
+                     person-validator))
+
+    (is (not (core/valid? {}
+                          person-validator)))
+
+    (let [errors-map {:address {:postcode '("postcode must be present")}
+                      :name '("name must be present")
+                      :age  '("age must be present")}]
+      (is (= errors-map
+             (first (core/validate {}
+                                   person-validator)))))))
 
 
 
