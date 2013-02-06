@@ -349,6 +349,7 @@ Feedback to both this library and this guide is welcome.
 ## TODO
 
 - Add more validators (help is appreciated here)
+- Validator pre-conditions
 
 ## CONTRIBUTORS
 
