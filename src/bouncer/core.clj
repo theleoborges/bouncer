@@ -150,7 +150,7 @@ If you'd like to know more about the motivation behind `bouncer`, check the
         step-pairs (vec (interleave (repeat ignore) wrap-calls))]
     `((m/domonad m/state-m
                  ~(assoc step-pairs (- (count step-pairs) 2) result)
-                 ~result) ~m)))
+                 ~result) (dissoc ~m ::errors))))
 
 ;; ## Public API
 
