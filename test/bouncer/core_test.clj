@@ -122,7 +122,15 @@
     (let [[result map] (core/validate {:name "Leo"}
                                       :name v/required)]
       (is (true? (and (empty? result)
-                      (nil? (::core/errors map))))))))
+                      (nil? (::core/errors map)))))))
+
+  (testing "revalidation of map with bouncer.core/errors key"
+    (let [[result-error map-error] (core/validate {} :name v/required)
+          corrected-map            (assoc map-error :name "Joe")
+          [result map]             (core/validate corrected-map :name v/required)]
+      (is (and (nil? result)
+               (nil? (::core/errors map)))
+          "Expected no errors after second validation"))))
 
 (deftest coll-validations
   (let [valid-map   {:name "Leo" :pets [{:name "Aragorn"} {:name "Gandalf"}]}
@@ -230,5 +238,5 @@
                                    :mobile (v/custom #(string? %) :message "wrong format")
                                    :car (v/member ["Ferrari" "Mustang" "Mini"])
                                    :dob v/number
-                                   [:passport :number] v/positive 
+                                   [:passport :number] v/positive
                                    [:address :past] (v/every #(not (nil? (:country %)))))))))))
