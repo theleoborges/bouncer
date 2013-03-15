@@ -4,7 +4,7 @@ A validation DSL for Clojure apps
 
 ## Table of Contents
 
-* [API Docs](http://leonardoborges.github.com/bouncer/)
+* [Annotated Source](http://leonardoborges.github.com/bouncer/)
 * [Motivation](#motivation)
 * [Setup](#setup)
 * [Usage](#usage)
@@ -12,6 +12,7 @@ A validation DSL for Clojure apps
     * [Validating nested maps](#validating-nested-maps)
     * [Multiple validation errors](#multiple-validation-errors)
     * [Validating collections](#validating-collections)
+    * [Validation pipelining](#validation-pipelining)    
 * [Composability: validator sets](#composability-validator-sets)
 * [Customization support](#customization-support)
     * [Custom validators using arbitrary functions](#custom-validations-using-arbitrary-functions)
@@ -183,6 +184,21 @@ Let's see it in action:
 ```
 
 All we need to do is provide a predicate function to `every`. It will be invoked for every item in the collection, making sure they all pass.
+
+### Validation pipelining
+
+Note that if a map if pipelined through multiple validators, bouncer will leave it's errors map untouched and simply add new validation errors to it:
+
+```clojure
+(-> {:age "NaN"}
+    (core/validate :name v/required)
+    second
+    (core/validate :age v/number)
+    second
+    ::core/errors)
+    
+;; {:age ("age must be a number"), :name ("name must be present")}
+```
 
 ## Composability: validator sets
 

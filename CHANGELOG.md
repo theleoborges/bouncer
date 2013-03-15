@@ -1,6 +1,7 @@
 ## 0.2.3 (UNRELEASED)
 
 - Validator sets can now be used at the top level call to `validate` and `valid?`.
+- Added tested and a doc section around validation pipelining. It was an undocumented invariant. See discussion [here](https://github.com/leonardoborges/bouncer/pull/4). 
 
 ## 0.2.2 (16/01/2013)
 

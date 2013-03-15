@@ -232,3 +232,15 @@
                                    :dob v/number
                                    [:passport :number] v/positive 
                                    [:address :past] (v/every #(not (nil? (:country %)))))))))))
+
+
+(deftest pipelining-validations
+  (testing "should preserve the existing errors map if there is one"
+    (let [validation-errors (-> {:age "NaN"}
+                            (core/validate :name v/required)
+                            second
+                            (core/validate :age v/number)
+                            second
+                            ::core/errors)]
+      (is (= 2
+             (count (select-keys validation-errors [:age :name])))))))
