@@ -13,6 +13,7 @@ A validation DSL for Clojure apps
     * [Multiple validation errors](#multiple-validation-errors)
     * [Validating collections](#validating-collections)
     * [Validation pipelining](#validation-pipelining)    
+    * [Pre-conditions](#pre-conditions)    
 * [Composability: validator sets](#composability-validator-sets)
 * [Customization support](#customization-support)
     * [Custom validators using arbitrary functions](#custom-validations-using-arbitrary-functions)
@@ -200,6 +201,31 @@ Note that if a map if pipelined through multiple validators, bouncer will leave 
 ;; {:age ("age must be a number"), :name ("name must be present")}
 ```
 
+### Pre-conditions
+
+Validators can take a pre-condition option `:pre` that causes it to be executed only if the given pre-condition - a truthy function - is met.
+
+Consider the following:
+
+```clojure
+(core/valid? {:a -1 :b "X"}
+             :b (v/member #{"Y" "Z"} :pre (comp pos? :a)))
+             
+;; true
+```
+
+As you can see the value of `b` is clearly not in the set `#{"Y" "Z"}`, however the whole validation passes because the `v/member` check states is should only be run if `:a` is positive.
+
+Let's now make it fail:
+
+```clojure
+(core/valid? {:a 1 :b "X"}
+             :b (v/member #{"Y" "Z"} :pre (comp pos? :a)))
+             
+;; false
+```
+
+
 ## Composability: validator sets
 
 If you find yourself repeating a set of validators over and over, chances are you will want to group and compose them somehow. The macro `bouncer.validators/defvalidatorset` does just that:
@@ -365,7 +391,7 @@ Feedback to both this library and this guide is welcome.
 ## TODO
 
 - Add more validators (help is appreciated here)
-- Validator pre-conditions
+- Docs are getting a bit messy. Fix that.
 
 ## CONTRIBUTORS
 

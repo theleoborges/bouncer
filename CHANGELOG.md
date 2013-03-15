@@ -1,7 +1,28 @@
 ## 0.2.3 (UNRELEASED)
 
 - Validator sets can now be used at the top level call to `validate` and `valid?`.
-- Added tested and a doc section around validation pipelining. It was an undocumented invariant. See discussion [here](https://github.com/leonardoborges/bouncer/pull/4). 
+
+    ```clojure
+    (defvalidatorset address-validator
+    :postcode v/required)
+    
+    (defvalidatorset person-validator
+    :name v/required
+    :age [v/required v/number]
+    :address address-validator)
+    
+    (core/validate {} person-validator)
+    ```           
+
+- Added tests and a doc section around validation pipelining. It was an undocumented invariant. See discussion [here](https://github.com/leonardoborges/bouncer/pull/4).
+- (alpha) Validators now support a pre-condition option. If it is met, the validator will run, otherwise it's just skipped:
+
+    ```clojure
+    (core/valid? {:a 1 :b "X"}
+                 :b (v/member #{"Y" "Z"} :pre (comp pos? :a)))
+              
+    ;; false
+    ```
 
 ## 0.2.2 (16/01/2013)
 

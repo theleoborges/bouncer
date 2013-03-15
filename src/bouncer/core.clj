@@ -82,6 +82,9 @@ If you'd like to know more about the motivation behind `bouncer`, check the
           []
           (partition 2 forms)))
 
+(defn pre-condition-met? [pre-fn map]
+  (or (nil? pre-fn) (pre-fn map)))
+
 (defn wrap
   "Wraps pred in the context of validating a single value
 
@@ -95,8 +98,8 @@ If you'd like to know more about the motivation behind `bouncer`, check the
 
   It only runs pred if:
 
-  - the validator is optional *and* there is a non-nil value to be validated (this information is read from pred's metadata)
-
+  - the validator contains a pre-condition *and* it is met or;
+  - the validator is optional  *and* there is a non-nil value to be validated (this information is read from pred's metadata) or;
   - there are no previous errors for the given path
 
   Returns `acc` augmented with a namespace qualified ::errors keyword
@@ -107,14 +110,16 @@ If you'd like to know more about the motivation behind `bouncer`, check the
         error-path (cons ::errors k)
         {:keys [default-message-format optional]} (meta pred)
         [args opts] (split-with (complement keyword?) args)
-        {:keys [message] :or {message default-message-format}} (apply hash-map opts)
+        {:keys [message pre] :or {message default-message-format}} (apply hash-map opts)
         pred-subject (get-in acc k)]
-    (if (or (and optional (nil? pred-subject))
-            (not (empty? (get-in acc error-path)))
-            (apply pred pred-subject args))
-      acc
-      (update-in acc error-path
-                 #(conj % (format message (name (peek k))))))))
+    (if (pre-condition-met? pre acc)
+      (if (or (and optional (nil? pred-subject))
+              (not (empty? (get-in acc error-path)))
+              (apply pred pred-subject args))
+        acc
+        (update-in acc error-path
+                   #(conj % (format message (name (peek k))))))
+      acc)))
 
 (defn wrap-chain
   "Internal Use.
