@@ -6,3 +6,8 @@
            (resolve form))
     (resolve form)
     form))
+
+(defn get-var-or-same [form]
+  (if (var? form)
+    (var-get form)
+    form))

@@ -102,6 +102,20 @@
                                    person-validator)))))))
 
 
+(def valid-items #{:a :b :c})
+
+(defvalidatorset items-validator-set
+  :field1 (v/member valid-items))
+
+;; addresses Issue https://github.com/leonardoborges/bouncer/issues/5
+(deftest nested-symbols
+  (testing "validator sets supports symbols -which are to be resolved- as arguments to validator functions"
+    (is (not (core/valid? {:field1 :e}
+                          items-validator-set)))
+    (is (core/valid? {:field1 :a}
+                          items-validator-set))))
+
+
 
 (deftest range-validator
   (testing "presence of value in the given range"

@@ -110,6 +110,7 @@ If you'd like to know more about the motivation behind `bouncer`, check the
         error-path (cons ::errors k)
         {:keys [default-message-format optional]} (meta pred)
         [args opts] (split-with (complement keyword?) args)
+        args (map h/get-var-or-same args)
         {:keys [message pre] :or {message default-message-format}} (apply hash-map opts)
         pred-subject (get-in acc k)]
     (if (pre-condition-met? pre acc)
