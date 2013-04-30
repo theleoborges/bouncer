@@ -23,6 +23,8 @@
               
     ;; false
     ```
+    
+- Fixed [Issue #5](https://github.com/leonardoborges/bouncer/issues/5): "bouncer.validators/member does not allow me to pass it a symbol referring to the collection"
 
 ## 0.2.2 (16/01/2013)
 
