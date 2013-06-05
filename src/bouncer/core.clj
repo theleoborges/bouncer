@@ -102,24 +102,24 @@ If you'd like to know more about the motivation behind `bouncer`, check the
   Returns `acc` augmented with a namespace qualified ::errors keyword
 "
   [acc [pred k & args]]
-  (let [pred (h/resolve-or-same pred)
-        k (if (vector? k) k [k])
-        error-path (cons ::errors k)
-        {:keys [default-message-format optional]} (meta pred)
+  (let [args (map h/get-var-or-same args)
         [args opts] (split-with (complement keyword?) args)
-        args (map h/get-var-or-same args)
         opts (apply hash-map opts)
-        message (or (opts :message) default-message-format)
         when-fn (opts :when)
-        pred-subject (get-in acc k)
         apply-validation? (or (nil? when-fn) (when-fn acc))]
     (if apply-validation?
-      (if (or (and optional (nil? pred-subject))
-              (not (empty? (get-in acc error-path)))
-              (apply pred pred-subject args))
-        acc
-        (update-in acc error-path
-                   #(conj % (format message (name (peek k))))))
+      (let [pred (h/resolve-or-same pred)
+            k (if (vector? k) k [k])
+            error-path (cons ::errors k)
+            pred-subject (get-in acc k)]
+        (if (or (and (:optional (meta pred))
+                     (nil? pred-subject))
+                (not (empty? (get-in acc error-path)))
+                (apply pred pred-subject args))
+          acc
+          (let [message (or (opts :message) (:default-message-format (meta pred)))]
+            (update-in acc error-path
+                       #(conj % (format message (name (peek k))))))))
       acc)))
 
 (defn wrap-chain
