@@ -12,8 +12,8 @@ A validation DSL for Clojure apps
     * [Validating nested maps](#validating-nested-maps)
     * [Multiple validation errors](#multiple-validation-errors)
     * [Validating collections](#validating-collections)
-    * [Validation pipelining](#validation-pipelining)    
-    * [Pre-conditions](#pre-conditions)    
+    * [Validation pipelining](#validation-pipelining)
+    * [Pre-conditions](#pre-conditions)
 * [Composability: validator sets](#composability-validator-sets)
 * [Customization support](#customization-support)
     * [Custom validators using arbitrary functions](#custom-validations-using-arbitrary-functions)
@@ -87,7 +87,7 @@ Below is an example where we're validating that a given map has a value for both
     :name v/required
     :age  v/required)
 
-;; [{:age ("age must be present")} 
+;; [{:age ("age must be present")}
 ;;  {:name "Leo", :bouncer.core/errors {:age ("age must be present")}}]
 ```
 
@@ -99,7 +99,7 @@ Error messages can be customized by providing a `:message` option - e.g: in case
 (b/validate person
     :age (v/required :message "Idade é um atributo obrigatório"))
 
-;; [{:age ("Idade é um atributo obrigatório")} 
+;; [{:age ("Idade é um atributo obrigatório")}
 ;;  {:name "Leo", :bouncer.core/errors {:age ("Idade é um atributo obrigatório")}}]
 ```
 
@@ -121,15 +121,15 @@ Nested maps can easily be validated as well, using the built-in validators:
     [:address :phone] (v/matches #"^\d+$"))
 
 
-;;[{:address 
-;;              {:phone ("phone must match the given regex pattern"), 
-;;               :postcode ("postcode must be a number"), 
-;;               :street ("street must be present")}} 
+;;[{:address
+;;              {:phone ("phone must match the given regex pattern"),
+;;               :postcode ("postcode must be a number"),
+;;               :street ("street must be present")}}
 ;;   {:bouncer.core/errors {:address {
-;;                          :phone ("phone must match the given regex pattern"), 
-;;                          :postcode ("postcode must be a number"), 
-;;                          :street ("street must be present")}}, 
-;;                          :address {:country "Brazil", :postcode "invalid", :street nil, 
+;;                          :phone ("phone must match the given regex pattern"),
+;;                          :postcode ("postcode must be a number"),
+;;                          :street ("street must be present")}},
+;;                          :address {:country "Brazil", :postcode "invalid", :street nil,
 ;;                          :phone "foobar"}}]
 ```
 
@@ -145,7 +145,7 @@ For instance, say you're validating a map representing a person and you expect t
 ```clojure
 (b/validate {:age nil}
     :age [v/required v/number v/positive])
-    
+
 ;; [{:age ("age must be present")} {:bouncer.core/errors {:age ("age must be present")}, :age nil}]
 ```
 
@@ -179,8 +179,8 @@ Let's see it in action:
 (b/validate person-with-pets
           :pets (v/every #(not (nil? (:name %)))))
 
-;;[{:pets ("All items in pets must satisfy the predicate")} 
-;; {:name "Leo", :pets [{:name nil} {:name "Gandalf"}], 
+;;[{:pets ("All items in pets must satisfy the predicate")}
+;; {:name "Leo", :pets [{:name nil} {:name "Gandalf"}],
 ;; :bouncer.core/errors {:pets ("All items in pets must satisfy the predicate")}}]
 ```
 
@@ -197,20 +197,20 @@ Note that if a map if pipelined through multiple validators, bouncer will leave 
     (core/validate :age v/number)
     second
     ::core/errors)
-    
+
 ;; {:age ("age must be a number"), :name ("name must be present")}
 ```
 
 ### Pre-conditions
 
-Validators can take a pre-condition option `:pre` that causes it to be executed only if the given pre-condition - a truthy function - is met.
+Validators can take a pre-condition option `:when` that causes it to be executed only if the given pre-condition - a truthy function - is met.
 
 Consider the following:
 
 ```clojure
 (core/valid? {:a -1 :b "X"}
-             :b (v/member #{"Y" "Z"} :pre (comp pos? :a)))
-             
+             :b (v/member #{"Y" "Z"} :when (comp pos? :a)))
+
 ;; true
 ```
 
@@ -220,8 +220,8 @@ Let's now make it fail:
 
 ```clojure
 (core/valid? {:a 1 :b "X"}
-             :b (v/member #{"Y" "Z"} :pre (comp pos? :a)))
-             
+             :b (v/member #{"Y" "Z"} :when (comp pos? :a)))
+
 ;; false
 ```
 
@@ -250,13 +250,13 @@ If you find yourself repeating a set of validators over and over, chances are yo
             :name    v/required
             :address addr-validator-set)
 
-;;[{:address 
-;;    {:postcode ("postcode must be a number" "postcode must be present"), 
-;;     :street ("street must be present")}, 
-;;     :name ("name must be present")} 
-;; 
-;; {:bouncer.core/errors {:address {:postcode ("postcode must be a number" "postcode must be present"), 
-;;  :street ("street must be present")}, :name ("name must be present")}, 
+;;[{:address
+;;    {:postcode ("postcode must be a number" "postcode must be present"),
+;;     :street ("street must be present")},
+;;     :name ("name must be present")}
+;;
+;; {:bouncer.core/errors {:address {:postcode ("postcode must be a number" "postcode must be present"),
+;;  :street ("street must be present")}, :name ("name must be present")},
 ;;  :address {:country "Brazil", :postcode ""}}]
 ```
 
@@ -271,10 +271,10 @@ Validator sets can also be composed together and used as a top level validation 
   :name v/required
   :age [v/required v/number]
   :address address-validator)
-  
+
 (core/validate {}
 			   person-validator)
-			   
+
 ;;[{:address {:postcode ("postcode must be present")}, :age ("age must be present"), :name ("name must be present")} {:bouncer.core/errors {:address {:postcode ("postcode must be present")}, :age ("age must be present"), :name ("name must be present")}}]
 ```
 
@@ -292,7 +292,7 @@ Much like the collections validations above, *bouncer* gives you the ability to 
           :age (v/custom young? :message "Too old!"))
 
 
-;; [{:age ("Too old!")} 
+;; [{:age ("Too old!")}
 ;;  {:bouncer.core/errors {:age ("Too old!")}, :age 29}]
 ```
 
@@ -328,7 +328,7 @@ Using it is then straightforward:
           :postcode my-number-validator)
 
 
-;; [{:postcode ("postcode must be a number")} 
+;; [{:postcode ("postcode must be a number")}
 ;;  {:bouncer.core/errors {:postcode ("postcode must be a number")}, :postcode "NaN"}]
 ```
 
