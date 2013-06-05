@@ -230,7 +230,7 @@
                                    :mobile (v/custom #(string? %) :message "wrong format")
                                    :car (v/member ["Ferrari" "Mustang" "Mini"])
                                    :dob v/number
-                                   [:passport :number] v/positive 
+                                   [:passport :number] v/positive
                                    [:address :past] (v/every #(not (nil? (:country %)))))))))))
 
 
@@ -248,17 +248,17 @@
 (deftest preconditions
   (testing "runs the current validation only if the pre-condition is met"
     (is (core/valid? {:a 1 :b "Z"}
-                     :b (v/member #{"Y" "Z"} :pre (comp pos? :a))))
+                     :b (v/member #{"Y" "Z"} :when (comp pos? :a))))
 
     (is (not (core/valid? {:a 1 :b "X"}
-                          :b (v/member #{"Y" "Z"} :pre (comp pos? :a)))))
-    
+                          :b (v/member #{"Y" "Z"} :when (comp pos? :a)))))
+
     (is (core/valid? {:a -1 :b "Z"}
-                     :b (v/member #{"Y" "Z"} :pre (comp pos? :a))))
+                     :b (v/member #{"Y" "Z"} :when (comp pos? :a))))
 
     (is (core/valid? {:a -1 :b "X"}
-                     :b (v/member #{"Y" "Z"} :pre (comp pos? :a))))
-    
+                     :b (v/member #{"Y" "Z"} :when (comp pos? :a))))
+
     (is (not (core/valid? {:a 1 :b "Z"}
-                          :b (v/member #{"Y" "Z"} :pre (comp pos? :a))
+                          :b (v/member #{"Y" "Z"} :when (comp pos? :a))
                           :c v/required)))))
