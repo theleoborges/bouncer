@@ -26,6 +26,8 @@
   :age [v/required v/number]
   :address address-validator)
 
+(defvalidatorset deep-validator
+  :winner person-validator)
 
 (deftest validator-sets
   (testing "validator sets for nested maps"
@@ -99,7 +101,15 @@
                       :age  '("age must be present")}]
       (is (= errors-map
              (first (core/validate {}
-                                   person-validator)))))))
+                                   person-validator)))))
+
+    ;; Test for issue #7 on github
+    (let [errors-map {:winner {:address {:postcode '("postcode must be present")}
+                               :name '("name must be present")
+                               :age  '("age must be present")}}]
+      (is (= errors-map
+             (first (core/validate {}
+                                   deep-validator)))))))
 
 
 (def valid-items #{:a :b :c})

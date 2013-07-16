@@ -59,11 +59,12 @@ If you'd like to know more about the motivation behind `bouncer`, check the
       ([:parent-keyword :keyword] [f g] [:parent-keyword :another-keyword] h)
 "
   [parent-key coll]
-  (let [pairs (partition 2 coll)]
+  (let [parent-key (if (keyword? parent-key) [parent-key] parent-key)
+        pairs (partition 2 coll)]
     (mapcat #(if (vector? (first %))
-               [(apply vector parent-key (first %)) (second %)]
-               [(vector parent-key (first %)) (second %)])
-            pairs)))
+            [(apply vector (concat parent-key (first %))) (second %)]
+            [(apply vector (concat parent-key [(first %)])) (second %)])
+    pairs)))
 
 (defn build-steps [forms]
   (reduce (fn [acc [key-or-vec sym-or-coll :as rule]]
