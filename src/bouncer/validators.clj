@@ -58,13 +58,17 @@
                   (next options)
                   options)
         [args & body] options
-        fn-meta {:doc docstring
-                 :default-message-format default-message-format
+        fn-meta {:default-message-format default-message-format
                  :optional optional}]
-    `(defn ~(with-meta name fn-meta)
-       {:arglists '([~@args])}
-       ([~@args]
-          ~@body))))
+    (let [arglists ''([name])]
+      `(do (def ~name
+             (with-meta (fn ~name 
+                          ([~@args]
+                             ~@body))
+               (merge ~fn-meta)))
+           (alter-meta! (var ~name) assoc
+                        :doc ~docstring
+                        :arglists '([~@args]))))))
 
 ;; ### Composability
 
@@ -88,6 +92,7 @@
   [name & forms]
   `(def ~(with-meta name {:bouncer-validator-set true})
      '(~@(w/postwalk h/resolve-or-same forms))))
+
 
 
 ;; ## Built-in validators

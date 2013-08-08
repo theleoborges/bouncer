@@ -1,3 +1,10 @@
+## 0.2.4 (UNRELEASED)
+
+- This release contains breaking changes: most macros have been removed in favour of pure functions and data structure literals. This means a lot less magic and better composability
+
+- TODO:
+	- Update docs
+
 ## 0.2.3 (UNRELEASED)
 
 - Validator sets can now be used at the top level call to `validate` and `valid?`.

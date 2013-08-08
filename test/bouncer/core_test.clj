@@ -32,15 +32,15 @@
 
   (testing "Custom validations"
     (is (not (core/valid? {}
-                          :name (v/custom #((complement nil?) %)))))
+                          :name [[v/custom #((complement nil?) %)]])))
     (is (core/valid? {:name "Leo"}
-                     :name (v/custom #((complement nil?) %))))
+                     :name [[v/custom #((complement nil?) %)]]))
 
     (letfn [(not-nil [v] ((complement nil?) v))]
       (is (not (core/valid? {}
-                            :name (v/custom not-nil))))
+                            :name [[v/custom not-nil]])))
       (is (core/valid? {:name "Leo"}
-                       :name (v/custom not-nil))))))
+                       :name [[v/custom not-nil]])))))
 
 (def map-no-street {:address {:street nil :country "Brazil"}})
 (def map-with-street (assoc-in map-no-street [:address :street]
@@ -64,7 +64,6 @@
 
     (is (not (core/valid? {}
                           [:address :street] v/required))))
-
 
   (testing "optional nested validations"
     (is (core/valid? {:passport {:issue-year 2012}}
@@ -93,7 +92,7 @@
                                  :name v/required
                                  :year v/number
                                  :age v/positive
-                                 :dob (v/custom #(not (nil? %))))))))
+                                 :dob [[v/custom #(not (nil? %))]])))))
 
   (testing "custom messages"
     (is (= {
@@ -104,10 +103,10 @@
             }
            (first
             (core/validate {:age -1 :year ""}
-                           :name (v/required :message "Nome eh obrigatorio")
-                           :year (v/required :message "Ano eh obrigatorio")
-                           :age (v/positive :message "Idade deve ser maior que zero")
-                           :dob (v/custom #(not (nil? %)) :message "Nao pode ser nulo")))))))
+                           :name [[v/required :message "Nome eh obrigatorio"]]
+                           :year [[v/required :message "Ano eh obrigatorio"]]
+                           :age [[v/positive :message "Idade deve ser maior que zero"]]
+                           :dob [[v/custom #(not (nil? %)) :message "Nao pode ser nulo"]]))))))
 
 (deftest validation-result
   (testing "invalid results"
@@ -130,23 +129,23 @@
 
     (testing "nested colls"
       (is (core/valid? valid-map
-                       :pets (v/every #(not (nil? (:name %))))))
+                       :pets [[v/every #(not (nil? (:name %)))]]))
 
 
 
       (is (not (core/valid? invalid-map
-                            :pets (v/every #(not (nil? (:name %))))))))
+                            :pets [[v/every #(not (nil? (:name %)))]]))))
 
     (testing "default messages for nested colls"
       (let [[result map] (core/validate invalid-map
-                                        :pets (v/every #(not (nil? (:name %)))))]
+                                        :pets [[v/every #(not (nil? (:name %)))]])]
         (is (= "All items in pets must satisfy the predicate"
                (-> result :pets (first))))))
 
     (testing "custom messages for nested colls"
       (let [[result map] (core/validate invalid-map
-                                        :pets (v/every #(not (nil? (:name %)))
-                                                          :message "All pets must have names"))]
+                                        :pets [[v/every #(not (nil? (:name %)))
+                                                :message "All pets must have names"]])]
         (is (= "All pets must have names"
                (-> result :pets (first)))))))
 
@@ -155,12 +154,12 @@
     (is (core/valid? {:name "Leo"
                       :address {:current { :country "Australia"}
                                 :past [{:country "Spain"} {:country "Brasil"}]}}
-                     [:address :past] (v/every #(not (nil? (:country %))))))
+                     [:address :past] [[v/every #(not (nil? (:country %)))]]))
 
     (is (not (core/valid? {:name "Leo"
                            :address {:current { :country "Australia"}
                                      :past [{:country "Spain"} {:country nil}]}}
-                          [:address :past] (v/every #(not (nil? (:country %)))))))))
+                          [:address :past] [[v/every #(not (nil? (:country %)))]])))))
 
 
 (defvalidator directory
@@ -227,11 +226,11 @@
              (first (core/validate invalid-map
                                    :name v/required
                                    :age v/required
-                                   :mobile (v/custom #(string? %) :message "wrong format")
-                                   :car (v/member ["Ferrari" "Mustang" "Mini"])
+                                   :mobile [[v/custom #(string? %) :message "wrong format"]]
+                                   :car [[v/member ["Ferrari" "Mustang" "Mini"]]]
                                    :dob v/number
                                    [:passport :number] v/positive 
-                                   [:address :past] (v/every #(not (nil? (:country %)))))))))))
+                                   [:address :past] [[v/every #(not (nil? (:country %)))]])))))))
 
 
 (deftest pipelining-validations
@@ -248,17 +247,21 @@
 (deftest preconditions
   (testing "runs the current validation only if the pre-condition is met"
     (is (core/valid? {:a 1 :b "Z"}
-                     :b (v/member #{"Y" "Z"} :pre (comp pos? :a))))
+                     :b [[v/member #{"Y" "Z"} :pre (comp pos? :a)]]))
 
     (is (not (core/valid? {:a 1 :b "X"}
-                          :b (v/member #{"Y" "Z"} :pre (comp pos? :a)))))
+                          :b [[v/member #{"Y" "Z"} :pre (comp pos? :a)]])))
     
     (is (core/valid? {:a -1 :b "Z"}
-                     :b (v/member #{"Y" "Z"} :pre (comp pos? :a))))
+                     :b [[v/member #{"Y" "Z"} :pre (comp pos? :a)]]))
 
     (is (core/valid? {:a -1 :b "X"}
-                     :b (v/member #{"Y" "Z"} :pre (comp pos? :a))))
+                     :b [[v/member #{"Y" "Z"} :pre (comp pos? :a)]]))
     
     (is (not (core/valid? {:a 1 :b "Z"}
-                          :b (v/member #{"Y" "Z"} :pre (comp pos? :a))
+                          :b [[v/member #{"Y" "Z"} :pre (comp pos? :a)]]
                           :c v/required)))))
+
+
+
+
