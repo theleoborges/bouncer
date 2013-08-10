@@ -42,6 +42,15 @@
       (is (core/valid? {:name "Leo"}
                        :name [[v/custom not-nil]])))))
 
+
+(deftest standard-functions
+  (testing "it can use plain clojure functions as validators"
+    (are [valid? subject    validations] (= valid? (core/valid? subject validations))
+         false   {:age 0}   {:age [[pos? :message "positive"]]}
+         true    {:age  10} {:age [[pos? :message "positive"]]}
+         false   {:age 0}   {:age pos?}
+         true    {:age  10} {:age pos?})))
+
 (def map-no-street {:address {:street nil :country "Brazil"}})
 (def map-with-street (assoc-in map-no-street [:address :street]
                                "Rock 'n Roll Boulevard"))
@@ -261,7 +270,3 @@
     (is (not (core/valid? {:a 1 :b "Z"}
                           :b [[v/member #{"Y" "Z"} :pre (comp pos? :a)]]
                           :c v/required)))))
-
-
-
-

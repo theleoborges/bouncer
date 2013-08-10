@@ -116,7 +116,9 @@ If you'd like to know more about the motivation behind `bouncer`, check the
   [acc [pred k & args]]
   (let [k (if (vector? k) k [k])
         error-path (cons ::errors k)
-        {:keys [default-message-format optional]} (meta pred)
+        {:keys [default-message-format optional]
+         :or {default-message-format "Custom validation failed for %s"
+              optional false}} (meta pred)
         [args opts] (split-with (complement keyword?) args)
         {:keys [message pre] :or {message default-message-format}} (apply hash-map opts)
         pred-subject (get-in acc k)]
