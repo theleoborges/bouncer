@@ -1,6 +1,5 @@
 (ns bouncer.validators-test
   (:use clojure.test)
-  (:use [bouncer.validators :only [defvalidator defvalidatorset]])
   (:require [bouncer
              [core :as core]
              [validators :as v]]))
@@ -83,7 +82,7 @@
       (is (= errors-map
              (first (core/validate invalid-map
                                    :name v/required
-                                   :age [[v/custom (complement empty?) :message "required"]]
+                                   :age [[(complement empty?) :message "required"]]
                                    [:passport :number] v/positive 
                                    :address addr-validator-set))))))
 

@@ -70,31 +70,6 @@
                         :doc ~docstring
                         :arglists '([~@args]))))))
 
-;; ### Composability
-
-
-(defmacro defvalidatorset
-  "Defines a set of validators encapsulating a reusable validation unit.
-
-  forms should follow the semantics of \"bouncer.core/validate\"
-
-  e.g.:
-
-    (defvalidatorset addr-validator-set
-      :postcode  [v/required v/number]
-      :street    v/required
-      :country   v/required)
-
-    (defvalidatorset person-validator-set
-      :name  [v/required v/number]
-      :address addr-validator-set)
-"
-  [name & forms]
-  `(def ~(with-meta name {:bouncer-validator-set true})
-     '(~@(w/postwalk h/resolve-or-same forms))))
-
-
-
 ;; ## Built-in validators
 
 (defvalidator required
@@ -141,6 +116,7 @@
 
   For use with validation macros such as `validate` or `valid?`"
   [value pred]
+  (println "Warning: bouncer.validators/custom is deprecated and will be removed. Use plain functions instead.")
   (pred value))
 
 (defvalidator every

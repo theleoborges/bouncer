@@ -32,15 +32,15 @@
 
   (testing "Custom validations"
     (is (not (core/valid? {}
-                          :name [[v/custom #((complement nil?) %)]])))
+                          :name (complement nil?))))
     (is (core/valid? {:name "Leo"}
-                     :name [[v/custom #((complement nil?) %)]]))
+                     :name (complement nil?)))
 
     (letfn [(not-nil [v] ((complement nil?) v))]
       (is (not (core/valid? {}
-                            :name [[v/custom not-nil]])))
+                            :name not-nil)))
       (is (core/valid? {:name "Leo"}
-                       :name [[v/custom not-nil]])))))
+                       :name not-nil)))))
 
 
 (deftest standard-functions
@@ -101,7 +101,7 @@
                                  :name v/required
                                  :year v/number
                                  :age v/positive
-                                 :dob [[v/custom #(not (nil? %))]])))))
+                                 :dob (complement nil?))))))
 
   (testing "custom messages"
     (is (= {
@@ -115,7 +115,7 @@
                            :name [[v/required :message "Nome eh obrigatorio"]]
                            :year [[v/required :message "Ano eh obrigatorio"]]
                            :age [[v/positive :message "Idade deve ser maior que zero"]]
-                           :dob [[v/custom #(not (nil? %)) :message "Nao pode ser nulo"]]))))))
+                           :dob [[(complement nil?) :message "Nao pode ser nulo"]]))))))
 
 (deftest validation-result
   (testing "invalid results"
@@ -235,7 +235,7 @@
              (first (core/validate invalid-map
                                    :name v/required
                                    :age v/required
-                                   :mobile [[v/custom #(string? %) :message "wrong format"]]
+                                   :mobile [[string? :message "wrong format"]]
                                    :car [[v/member ["Ferrari" "Mustang" "Mini"]]]
                                    :dob v/number
                                    [:passport :number] v/positive 

@@ -280,17 +280,16 @@ Validator sets can also be composed together and used as a top level validation 
 
 ## Customization Support
 
-### Custom validations using arbitrary functions
+### Custom validations using plain functions
 
-Much like the collections validations above, *bouncer* gives you the ability to use arbitrary functions as predicates for validations through the `custom` built-in validator. Its usage should be familiar:
+Using your own functions as validators is simple:
 
 ```clojure
 (defn young? [age]
     (< age 25))
 
 (b/validate {:age 29}
-          :age (v/custom young? :message "Too old!"))
-
+            :age [[young? :message "Too old!"]])
 
 ;; [{:age ("Too old!")} 
 ;;  {:bouncer.core/errors {:age ("Too old!")}, :age 29}]
@@ -298,9 +297,21 @@ Much like the collections validations above, *bouncer* gives you the ability to 
 
 ### Writing validators
 
+As shown above, validators as just functions. The downside is that by using a function, bouncer will default to a validation message that might not make sense in a given scenario:
+
+```clojure
+(core/validate {:age 29}
+               :age young?)
+               
+;; [{:age ("Custom validation failed for age")} 
+;; {:bouncer.core/errors {:age ("Custom validation failed for age")}, :age 29}]
+```
+
+You could of course use the message keyword as in previous examples but if you reuse the validation in several places, you'd need a lot of copying and pasting.
+
 Another way - and the preferred one - to provide custom validations is to use the macro `defvalidator` in the `bouncer.validators` namespace.
 
-The advantage of this approach is that your validator can be used in the same way built-in validators are - there's no need to use `bouncer.validators/custom`.
+The advantage of this approach is that it attaches the needed metadata for bouncer to know which message to use:
 
 As an example, here's a simplified version of the `bouncer.validators/number` validator:
 
@@ -320,6 +331,15 @@ Options is a map of key/value pairs where:
 - `:default-message-format` - to be used when clients of this validator don't provide one
 - `:optional` - a boolean indicating if this validator should only trigger for keys that have a value different than `nil`. Defaults to false.
 
+That's all syntactic sugar for:
+
+```clojure
+(def my-number-validator
+  (with-meta (fn my-number-validator
+               ([maybe-a-number]
+                  (number? maybe-a-number)))
+    {:default-message-format "%s must be a number", :optional false}))
+```
 
 Using it is then straightforward:
 
@@ -375,8 +395,6 @@ I didn't spend a whole lot of time on *bouncer* so it only ships with the valida
 - `bouncer.validators/member`
 
 - `bouncer.validators/matches` (for matching regular expressions)
-
-- `bouncer.validators/custom` (for ad-hoc validations)
 
 - `bouncer.validators/every` (for ad-hoc validation of collections. All items must match the provided predicate)
 

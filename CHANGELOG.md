@@ -1,9 +1,14 @@
 ## 0.2.4 (UNRELEASED)
 
-- This release contains breaking changes: most macros have been removed in favour of pure functions and data structure literals. This means a lot less magic and better composability
+> This release contains breaking changes: most macros have been removed in favour of pure functions and data structure literals. This means a lot less magic and better composability
+
+
+- `core/valid?` and `core/validate` rewritten as functions
+- remove `validators/defvalidatorset` macro in favor of standard maps
 
 - TODO:
-	- Update docs
+	- Update README
+	- Update docstrings
 
 ## 0.2.3 (UNRELEASED)
 
