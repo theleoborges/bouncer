@@ -1,11 +1,11 @@
 (ns bouncer.core
-  "The `core` namespace provides the two main validation macros in bouncer:
+  "The `core` namespace provides the two main entry point functions in bouncer:
 
   - `validate`
-  - `valid`
+  - `valid?`
 
 
-All other functions are meant for internal use only and shouldn't be relied on.
+All other functions are meant for internal use only and shouldn't be relied upon.
 
 The project [README](https://github.com/leonardoborges/bouncer/blob/master/README.md) should get you started,
 it's pretty comprehensive.
@@ -31,47 +31,35 @@ If you'd like to know more about the motivation behind `bouncer`, check the
         (let [[f & opts] f-or-list]
           (recur key-or-vec
                  rest
-                 (conj acc `[~(h/resolve-or-same f) ~key-or-vec ~@opts])))
+                 (conj acc (concat [f key-or-vec ] opts))))
 
         :else (recur key-or-vec
                      rest
-                     (conj acc `[~(h/resolve-or-same f-or-list) ~key-or-vec]))))))
+                     (conj acc [f-or-list key-or-vec]))))))
 
-(def is-validator-set? (comp true?
-                             :bouncer-validator-set
-                             meta
-                             h/resolve-or-same))
+(defn merge-path
+  "Takes two arguments:
 
-;; (defn merge-path
-;;   "Takes two arguments:
+  `parent-keyword` is a :keyword - or a vector of :keywords denoting a path in a associative structure
 
-;;   `parent-keyword` is a a keyword - or a vector of :keywords denoting a path in a associative structure
-
-;;   `coll` is a seq of forms following this spec:
+  `validations-map` is a map of forms following this spec:
 
 
-;;       (:keyword [f g] :another-keyword h)
+      {:keyword [f g] :another-keyword h}
 
 
-;;   Merges `:parent-keyword` with every first element of coll, transforming coll into:
+  Merges `:parent-keyword` with every first element of validations-map, transforming it into:
 
 
-;;       ([:parent-keyword :keyword] [f g] [:parent-keyword :another-keyword] h)
-;; "
-;;   [parent-key coll]
-;;   (let [parent-key (if (keyword? parent-key) [parent-key] parent-key)
-;;         pairs (partition 2 coll)]
-;;     (mapcat #(if (vector? (first %))
-;;             [(apply vector (concat parent-key (first %))) (second %)]
-;;             [(apply vector (concat parent-key [(first %)])) (second %)])
-;;     pairs)))
-(defn merge-path [parent-key validations-map]
-    (let [parent-key (if (keyword? parent-key) [parent-key] parent-key)]
-      (mapcat (fn [[key validations]]
-           (if (vector? key)
-            [(apply vector (concat parent-key key)) validations]
-            [(apply vector (concat parent-key [key])) validations]))
-         validations-map)))
+      ([:parent-keyword :keyword] [f g] [:parent-keyword :another-keyword] h)
+"
+  [parent-key validations-map]
+  (let [parent-key (if (keyword? parent-key) [parent-key] parent-key)]
+    (mapcat (fn [[key validations]]
+              (if (vector? key)
+                [(apply vector (concat parent-key key)) validations]
+                [(apply vector (concat parent-key [key])) validations]))
+            validations-map)))
 
 (defn build-steps [[head & tail :as forms]]  
   (let [forms (if (map? head)
@@ -153,22 +141,12 @@ If you'd like to know more about the motivation behind `bouncer`, check the
 ;; (defn emit-wrap [entry]
 ;;   `(wrap-chain ~(second entry)))
 
-;; (defmacro validate*
-;;   "Internal use.
-
-;;   Validates the map m using the validation functions fs.
-
-;;   Returns a vector where the first element is the map of validation errors if any and the second is the original map (possibly)augmented with the errors map."
-;;   [m & fs]
-;;   (let [ignore (gensym "ignore__")
-;;         result (gensym "result__")
-;;         wrap-calls (map emit-wrap fs)
-;;         step-pairs (vec (interleave (repeat ignore) wrap-calls))]
-;;     `((m/domonad m/state-m
-;;                  ~(assoc step-pairs (- (count step-pairs) 2) result)
-;;                  ~result) ~m)))
-
 (defn validate*
+  "Internal use.
+
+  Validates the map m using the validation functions fs.
+
+  Returns a vector where the first element is the map of validation errors if any and the second is the original map (possibly)augmented with the errors map."
   [m fs]
   (letfn [(m-fn [fs]
             (let [m-bind (:m-bind m/state-m)
@@ -184,40 +162,33 @@ If you'd like to know more about the motivation behind `bouncer`, check the
 
 ;; ## Public API
 
-;; (defn validate
-;;   "Validates the map m using the validations specified by forms.
+(defn validate
+  "Validates the map m using the validations specified by forms.
 
-;;   forms can be a single validator set or a sequence of key/value pairs where:
+  forms can be a single validator set or a sequence of key/value pairs where:
 
-;;   key   ==> :keyword or [:a :path]
+  key   ==> :keyword or [:a :path]
 
-;;   value ==> validation-function or
-;;             validator-set or
-;;            (validation-function args+opts) or
-;;            [validation-function another-validation-function] or
-;;            [validation-function (another-validation-function args+opts)]
+  value ==> validation-function or
+            validator-set or
+           [[validation-function args+opts]] or
+           [validation-function another-validation-function] or
+           [validation-function [another-validation-function args+opts]]
 
-;;   e.g.:
+  e.g.:
 
-;;       (core/validate a-map
-;;                :name core/required
-;;                :age [core/required
-;;                      (core/number :message \"age must be a number\")]
-;;                [:passport :number] core/positive)
+      (core/validate a-map
+               :name core/required
+               :age  [core/required
+                     [core/number :message \"age must be a number\"]]
+               [:passport :number] core/positive)
 
 
-;;   Returns a vector where the first element is the map of validation errors if any and the second is the original map (possibly)augmented with the errors map.
+  Returns a vector where the first element is the map of validation errors if any and the second is the original map (possibly)augmented with the errors map.
 
-;;   See also `defvalidatorset`
-;; "
-;;   [m & forms]
-;;   (if (= (count forms) 1)
-;;     (validate* m
-;;                (group-by second (build-steps (var-get (h/resolve-or-same (first forms))))))
-;;     (validate* m
-;;                (group-by second (build-steps forms)))))
-
-(defn validate [m & forms]
+  See also `defvalidator`
+"
+  [m & forms]
   (validate* m (build-steps forms)))
 
 (defn valid?

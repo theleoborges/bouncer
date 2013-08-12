@@ -32,7 +32,7 @@
       (some #{value} coll))
 
     (validate {:age 10}
-      :age (in (range 5)))
+      :age [[member (range 5)]])
 
 
   This means the validator `member` will be called with the arguments `10` and `(0 1 2 3 4)`, 
