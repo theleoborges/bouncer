@@ -14,7 +14,7 @@ A validation DSL for Clojure apps
     * [Validating collections](#validating-collections)
     * [Validation pipelining](#validation-pipelining)    
     * [Pre-conditions](#pre-conditions)    
-* [Composability: validator sets](#composability-validator-sets)
+* [Validator sets](#validator-sets)
 * [Customization support](#customization-support)
     * [Custom validators using arbitrary functions](#custom-validations-using-arbitrary-functions)
     * [Writing validators](#writing-validators)
@@ -97,11 +97,16 @@ Error messages can be customized by providing a `:message` option - e.g: in case
 
 ```clojure
 (b/validate person
-    :age (v/required :message "Idade é um atributo obrigatório"))
+    :age [[v/required :message "Idade é um atributo obrigatório"]])
 
 ;; [{:age ("Idade é um atributo obrigatório")} 
 ;;  {:name "Leo", :bouncer.core/errors {:age ("Idade é um atributo obrigatório")}}]
 ```
+
+Note the double vector: 
+
+- the inner one wraps a single validation where the first element is the validating function and the rest are options for that validation.
+- the outer vector simply denotes a list of validations to be applied
 
 ### Validating nested maps
 
@@ -118,7 +123,7 @@ Nested maps can easily be validated as well, using the built-in validators:
 (b/validate person-1
     [:address :street]   v/required
     [:address :postcode] v/number
-    [:address :phone] (v/matches #"^\d+$"))
+    [:address :phone]    [[v/matches #"^\d+$"]])
 
 
 ;;[{:address 
@@ -177,7 +182,7 @@ Let's see it in action:
                               {:name "Gandalf"}]})
 
 (b/validate person-with-pets
-          :pets (v/every #(not (nil? (:name %)))))
+          :pets [[v/every #(not (nil? (:name %)))]])
 
 ;;[{:pets ("All items in pets must satisfy the predicate")} 
 ;; {:name "Leo", :pets [{:name nil} {:name "Gandalf"}], 
@@ -192,11 +197,11 @@ Note that if a map if pipelined through multiple validators, bouncer will leave 
 
 ```clojure
 (-> {:age "NaN"}
-    (core/validate :name v/required)
+    (b/validate :name v/required)
     second
-    (core/validate :age v/number)
+    (b/validate :age v/number)
     second
-    ::core/errors)
+    ::b/errors)
     
 ;; {:age ("age must be a number"), :name ("name must be present")}
 ```
@@ -208,8 +213,8 @@ Validators can take a pre-condition option `:pre` that causes it to be executed 
 Consider the following:
 
 ```clojure
-(core/valid? {:a -1 :b "X"}
-             :b (v/member #{"Y" "Z"} :pre (comp pos? :a)))
+(b/valid? {:a -1 :b "X"}
+           :b [[v/member #{"Y" "Z"} :pre (comp pos? :a)]])
              
 ;; true
 ```
@@ -219,26 +224,25 @@ As you can see the value of `b` is clearly not in the set `#{"Y" "Z"}`, however 
 Let's now make it fail:
 
 ```clojure
-(core/valid? {:a 1 :b "X"}
-             :b (v/member #{"Y" "Z"} :pre (comp pos? :a)))
+(b/valid? {:a 1 :b "X"}
+           :b [[v/member #{"Y" "Z"} :pre (comp pos? :a)]])
              
 ;; false
 ```
 
 
-## Composability: validator sets
+## Validator sets
 
-If you find yourself repeating a set of validators over and over, chances are you will want to group and compose them somehow. The macro `bouncer.validators/defvalidatorset` does just that:
+If you find yourself repeating a set of validators over and over, chances are you will want to group and compose them somehow. Validator sets are simply plain Clojure maps:
 
 
 ```clojure
-(use '[bouncer.validators :only [defvalidatorset]])
 
 ;; first we define the set of validators we want to use
-(defvalidatorset addr-validator-set
-  :postcode [v/required v/number]
-  :street    v/required
-  :country   v/required)
+(def address-validations
+  {:postcode [v/required v/number]
+   :street    v/required
+   :country   v/required})
 
 ;;just something to validate
 (def person {:address {
@@ -248,7 +252,7 @@ If you find yourself repeating a set of validators over and over, chances are yo
 ;;now we compose the validators
 (b/validate person
             :name    v/required
-            :address addr-validator-set)
+            :address address-validations)
 
 ;;[{:address 
 ;;    {:postcode ("postcode must be a number" "postcode must be present"), 
@@ -260,20 +264,20 @@ If you find yourself repeating a set of validators over and over, chances are yo
 ;;  :address {:country "Brazil", :postcode ""}}]
 ```
 
-Validator sets can also be composed together and used as a top level validation as shown below:
+You can also compose validator sets together and use them as top level validations:
 
 
 ```clojure
-(defvalidatorset address-validator
-  :postcode v/required)
+(def address-validator
+  {:postcode v/required})
 
-(defvalidatorset person-validator
-  :name v/required
-  :age [v/required v/number]
-  :address address-validator)
+(def person-validator
+  {:name v/required
+   :age [v/required v/number]
+   :address address-validator})
   
-(core/validate {}
-			   person-validator)
+(b/validate {}
+			person-validator)
 			   
 ;;[{:address {:postcode ("postcode must be present")}, :age ("age must be present"), :name ("name must be present")} {:bouncer.core/errors {:address {:postcode ("postcode must be present")}, :age ("age must be present"), :name ("name must be present")}}]
 ```
@@ -297,10 +301,10 @@ Using your own functions as validators is simple:
 
 ### Writing validators
 
-As shown above, validators as just functions. The downside is that by using a function, bouncer will default to a validation message that might not make sense in a given scenario:
+As shown above, validators as just functions. The downside is that by using a function bouncer will default to a validation message that might not make sense in a given scenario:
 
 ```clojure
-(core/validate {:age 29}
+(b/validate {:age 29}
                :age young?)
                
 ;; [{:age ("Custom validation failed for age")} 
@@ -356,14 +360,14 @@ As you'd expect, the message can be customized as well:
 
 ```clojure
 (b/validate {:postcode "NaN"}
-          :postcode (my-number-validator :message "must be a number"))
+          :postcode [[my-number-validator :message "must be a number"]])
 ```
 
 ### Validators and arbitrary number of arguments
 
 Your validators aren't limited to a single argument though.
 
-Since *v0.2.2*, `defvalidator` takes an arbitrary number of arguments. The only thing you need to be aware is that the value being validated will **always** be the first argument you list. Let's see an example with the `member` validator:
+Since *v0.2.2*, `defvalidator` takes an arbitrary number of arguments. The only thing you need to be aware is that the value being validated will **always** be the first argument you list - this applies if you're using plain functions too. Let's see an example with the `member` validator:
 
 ```clojure
 (defvalidator member
@@ -377,7 +381,7 @@ Yup, it's that *simple*. Let's use it:
 (def kid {:age 10})
 
 (b/validate kid
-            :age (member (range 5)))
+            :age [[member (range 5)]])
 ```
 
 In the example above, the validator will be called with `10` - that's the value the key `:age` holds - and `(0 1 2 3 4)` - which is the result of `(range 5)` and will be fed as the second argument to the validator.
@@ -418,6 +422,6 @@ Feedback to both this library and this guide is welcome.
 
 ## License
 
-Copyright © 2012 [Leonardo Borges](http://www.leonardoborges.com)
+Copyright © 2012-2013 [Leonardo Borges](http://www.leonardoborges.com)
 
 Distributed under the [MIT License](http://opensource.org/licenses/MIT).
