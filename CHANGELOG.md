@@ -1,4 +1,4 @@
-## 0.2.3 (UNRELEASED)
+## 0.2.3 (12/08/2013)
 
 - Validator sets can now be used at the top level call to `validate` and `valid?`.
 
