@@ -21,7 +21,7 @@ If you'd like to know more about the motivation behind `bouncer`, check the
 
 ;; ## Internal utility functions
 
-(defn build-multi-step
+(defn- build-multi-step
   ([key-or-vec fn-vec] (build-multi-step key-or-vec fn-vec []))
   ([key-or-vec [f-or-list & rest] acc]
      (if-not f-or-list
@@ -37,7 +37,7 @@ If you'd like to know more about the motivation behind `bouncer`, check the
                      rest
                      (conj acc [f-or-list key-or-vec]))))))
 
-(defn merge-path
+(defn- merge-path
   "Takes two arguments:
 
   `parent-keyword` is a :keyword - or a vector of :keywords denoting a path in a associative structure
@@ -61,7 +61,7 @@ If you'd like to know more about the motivation behind `bouncer`, check the
                 [(apply vector (concat parent-key [key])) validations]))
             validations-map)))
 
-(defn build-steps [[head & tail :as forms]]  
+(defn- build-steps [[head & tail :as forms]]  
   (let [forms (if (map? head)
                 (vec (mapcat identity head))
                 forms)]
@@ -75,21 +75,21 @@ If you'd like to know more about the motivation behind `bouncer`, check the
                (concat acc (build-steps (merge-path key-or-vec
                                                     sym-or-coll)))
 
-               :else (conj acc `[~(h/resolve-or-same sym-or-coll) ~key-or-vec])))
+               :else (conj acc [sym-or-coll key-or-vec])))
             []
             (partition 2 forms))))
 
-(defn pre-condition-met? [pre-fn map]
+(defn- pre-condition-met? [pre-fn map]
   (or (nil? pre-fn) (pre-fn map)))
 
-(defn wrap
+(defn- wrap
   "Wraps pred in the context of validating a single value
 
   - `acc`  is the map being validated
 
   - `pred` is a validator
 
-  - `k`    the path to the value to be validated in the associative structure acc
+  - `k`    the path to the value to be validated in the associative structure `acc`
 
   - `args` any extra args to pred
 
@@ -120,7 +120,7 @@ If you'd like to know more about the motivation behind `bouncer`, check the
       acc)))
 
 
-(defn wrap-chain
+(defn- wrap-chain
   "Internal Use.
 
   Chain of responsibility.
@@ -138,10 +138,7 @@ If you'd like to know more about the motivation behind `bouncer`, check the
                             fs)]
       [(::errors new-state) new-state])))
 
-;; (defn emit-wrap [entry]
-;;   `(wrap-chain ~(second entry)))
-
-(defn validate*
+(defn- validate*
   "Internal use.
 
   Validates the map m using the validation functions fs.

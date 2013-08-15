@@ -12,7 +12,7 @@ A validation DSL for Clojure apps
     * [Validating nested maps](#validating-nested-maps)
     * [Multiple validation errors](#multiple-validation-errors)
     * [Validating collections](#validating-collections)
-    * [Validation pipelining](#validation-pipelining)    
+    * [Validation threading](#validation-threading)    
     * [Pre-conditions](#pre-conditions)    
 * [Validator sets](#validator-sets)
 * [Customization support](#customization-support)
@@ -191,9 +191,9 @@ Let's see it in action:
 
 All we need to do is provide a predicate function to `every`. It will be invoked for every item in the collection, making sure they all pass.
 
-### Validation pipelining
+### Validation threading
 
-Note that if a map if pipelined through multiple validators, bouncer will leave it's errors map untouched and simply add new validation errors to it:
+Note that if a map is threaded through multiple validators, bouncer will leave it's errors map untouched and simply add new validation errors to it:
 
 ```clojure
 (-> {:age "NaN"}
@@ -315,7 +315,7 @@ You could of course use the message keyword as in previous examples but if you r
 
 Another way - and the preferred one - to provide custom validations is to use the macro `defvalidator` in the `bouncer.validators` namespace.
 
-The advantage of this approach is that it attaches the needed metadata for bouncer to know which message to use:
+The advantage of this approach is that it attaches the needed metadata for bouncer to know which message to use.
 
 As an example, here's a simplified version of the `bouncer.validators/number` validator:
 
@@ -367,7 +367,7 @@ As you'd expect, the message can be customized as well:
 
 Your validators aren't limited to a single argument though.
 
-Since *v0.2.2*, `defvalidator` takes an arbitrary number of arguments. The only thing you need to be aware is that the value being validated will **always** be the first argument you list - this applies if you're using plain functions too. Let's see an example with the `member` validator:
+Since *v0.2.2*, `defvalidator` takes an arbitrary number of arguments. The only thing you need to be aware of is that the value being validated will **always** be the first argument you list - this applies if you're using plain functions too. Let's see an example with the `member` validator:
 
 ```clojure
 (defvalidator member

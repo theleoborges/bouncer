@@ -77,7 +77,7 @@
 
   If the value is a string, it makes sure it's not empty, otherwise it checks for nils.
 
-  For use with validation macros such as `validate` or `valid?`
+  For use with validation functions such as `validate` or `valid?`
 "
   {:default-message-format "%s must be present"}
   [value]
@@ -88,7 +88,7 @@
 (defvalidator number
   "Validates maybe-a-number is a valid number.
 
-  For use with validation macros such as `validate` or `valid?`"
+  For use with validation functions such as `validate` or `valid?`"
   {:default-message-format "%s must be a number" :optional true}
   [maybe-a-number]
   (number? maybe-a-number))
@@ -97,7 +97,7 @@
 (defvalidator positive
   "Validates number is a number and is greater than zero.
 
-  For use with validation macros such as `validate` or `valid?`"
+  For use with validation functions such as `validate` or `valid?`"
   {:default-message-format "%s must be a positive number" :optional true}
   [number]
   (> number 0))
@@ -106,7 +106,7 @@
 (defvalidator member
   "Validates value is a member of coll.
 
-  For use with validation macros such as `validate` or `valid?`"
+  For use with validation functions such as `validate` or `valid?`"
   {:default-message-format "%s must be one of the values in the list"}
   [value coll]
   (some #{value} coll))
@@ -114,7 +114,7 @@
 (defvalidator custom
   "Validates pred is true for the given value.
 
-  For use with validation macros such as `validate` or `valid?`"
+  For use with validation functions such as `validate` or `valid?`"
   [value pred]
   (println "Warning: bouncer.validators/custom is deprecated and will be removed. Use plain functions instead.")
   (pred value))
@@ -122,7 +122,7 @@
 (defvalidator every
   "Validates pred is true for every item in coll.
 
-  For use with validation macros such as `validate` or `valid?`"
+  For use with validation functions such as `validate` or `valid?`"
   {:default-message-format "All items in %s must satisfy the predicate"}
   [coll pred]
   (every? pred coll))
@@ -130,7 +130,7 @@
 (defvalidator matches
   "Validates value satisfies the given regex pattern.
 
-   For use with validation macros such as `validate` or `valid?`"
+   For use with validation functions such as `validate` or `valid?`"
   {:default-message-format "%s must satisfy the given pattern" :optional true}
   [value re]
   ((complement empty?) (re-seq re value)))

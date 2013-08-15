@@ -5,10 +5,8 @@
 
 - `core/valid?` and `core/validate` rewritten as functions
 - remove `validators/defvalidatorset` macro in favor of standard maps
-
-- TODO:
-	- Update README
-	- Update docstrings
+- Updated README
+- Updated docstrings
 
 ## 0.2.3 (UNRELEASED)
 
