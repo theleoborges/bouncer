@@ -3028,15 +3028,15 @@ net.brehaut.ClojureTools = (function (SH) {
     build_tree: build_tree
   };
 })(SyntaxHighlighter);
-</script><title>bouncer -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">bouncer</h1><h2 class="project-version">0.2.3-beta4</h2><br /><p>A validation DSL for Clojure apps</p>
-</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.5.1</td></tr><tr><td class="dep-name">org.clojure/algo.monads</td><td class="dotted"><hr /></td><td class="dep-version">0.1.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#bouncer.core">bouncer.core</a></li><li><a href="#bouncer.helpers">bouncer.helpers</a></li><li><a href="#bouncer.validators">bouncer.validators</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#bouncer.core" name="bouncer.core"><h1 class="project-name">bouncer.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>The <code>core</code> namespace provides the two main validation macros in bouncer:</p>
+</script><title>bouncer -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">bouncer</h1><h2 class="project-version">0.2.4-alpha1</h2><br /><p>A validation DSL for Clojure apps</p>
+</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.5.1</td></tr><tr><td class="dep-name">org.clojure/algo.monads</td><td class="dotted"><hr /></td><td class="dep-version">0.1.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#bouncer.core">bouncer.core</a></li><li><a href="#bouncer.validators">bouncer.validators</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#bouncer.core" name="bouncer.core"><h1 class="project-name">bouncer.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>The <code>core</code> namespace provides the two main entry point functions in bouncer:</p>
 
 <ul>
 <li><code>validate</code></li>
-<li><code>valid</code></li>
+<li><code>valid?</code></li>
 </ul>
 
-<p>All other functions are meant for internal use only and shouldn't be relied on.</p>
+<p>All other functions are meant for internal use only and shouldn't be relied upon.</p>
 
 <p>The project <a href="https://github.com/leonardoborges/bouncer/blob/master/README.md">README</a> should get you started,
 it's pretty comprehensive.</p>
@@ -3045,67 +3045,63 @@ it's pretty comprehensive.</p>
 <a href="http://www.leonardoborges.com/writings/2013/01/04/bouncer-validation-lib-for-clojure/">announcement post</a>.</p>
 </td><td class="codes"><pre class="brush: clojure">(ns bouncer.core
   {:author &quot;Leonardo Borges&quot;}
-  (:require [clojure.algo.monads :as m]
-            [bouncer.helpers :as h]))</pre></td></tr><tr><td class="docs"><h2>Internal utility functions</h2>
+  (:require [clojure.algo.monads :as m]))</pre></td></tr><tr><td class="docs"><h2>Internal utility functions</h2>
 </td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn build-multi-step
+</td><td class="codes"><pre class="brush: clojure">(defn- build-multi-step
   ([key-or-vec fn-vec] (build-multi-step key-or-vec fn-vec []))
   ([key-or-vec [f-or-list &amp; rest] acc]
      (if-not f-or-list
        acc
        (cond
-        (list? f-or-list)
+        (sequential? f-or-list)
         (let [[f &amp; opts] f-or-list]
           (recur key-or-vec
                  rest
-                 (conj acc `[~(h/resolve-or-same f) ~key-or-vec ~@opts])))
+                 (conj acc (concat [f key-or-vec ] opts))))
         :else (recur key-or-vec
                      rest
-                     (conj acc `[~(h/resolve-or-same f-or-list) ~key-or-vec]))))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def is-validator-set? (comp true?
-                             :bouncer-validator-set
-                             meta
-                             h/resolve-or-same))</pre></td></tr><tr><td class="docs"><p>Takes two arguments:</p>
+                     (conj acc [f-or-list key-or-vec]))))))</pre></td></tr><tr><td class="docs"><p>Takes two arguments:</p>
 
-<p>  <code>parent-keyword</code> is a a keyword - or a vector of :keywords denoting a path in a associative structure</p>
+<p>  <code>parent-keyword</code> is a :keyword - or a vector of :keywords denoting a path in a associative structure</p>
 
-<p>  <code>coll</code> is a seq of forms following this spec:</p>
+<p>  <code>validations-map</code> is a map of forms following this spec:</p>
 
-<pre><code>  (:keyword [f g] :another-keyword h)
+<pre><code>  {:keyword [f g] :another-keyword h}
 </code></pre>
 
-<p>  Merges <code>:parent-keyword</code> with every first element of coll, transforming coll into:</p>
+<p>  Merges <code>:parent-keyword</code> with every first element of validations-map, transforming it into:</p>
 
 <pre><code>  ([:parent-keyword :keyword] [f g] [:parent-keyword :another-keyword] h)
 </code></pre>
-</td><td class="codes"><pre class="brush: clojure">(defn merge-path
-  [parent-key coll]
-  (let [parent-key (if (keyword? parent-key) [parent-key] parent-key)
-        pairs (partition 2 coll)]
-    (mapcat #(if (vector? (first %))
-            [(apply vector (concat parent-key (first %))) (second %)]
-            [(apply vector (concat parent-key [(first %)])) (second %)])
-    pairs)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn build-steps [forms]
-  (reduce (fn [acc [key-or-vec sym-or-coll :as rule]]
-            (cond
-             (vector? sym-or-coll)
-             (concat acc (build-multi-step key-or-vec sym-or-coll))
-             (list? sym-or-coll)
-             (concat acc (build-multi-step key-or-vec [sym-or-coll]))
-             (is-validator-set? sym-or-coll)
-             (concat acc (build-steps (merge-path key-or-vec
-                                                  (var-get (h/resolve-or-same sym-or-coll)))))
-             :else (conj acc `[~(h/resolve-or-same sym-or-coll) ~key-or-vec])))
-          []
-          (partition 2 forms)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn pre-condition-met? [pre-fn map]
+</td><td class="codes"><pre class="brush: clojure">(defn- merge-path
+  [parent-key validations-map]
+  (let [parent-key (if (keyword? parent-key) [parent-key] parent-key)]
+    (mapcat (fn [[key validations]]
+              (if (vector? key)
+                [(apply vector (concat parent-key key)) validations]
+                [(apply vector (concat parent-key [key])) validations]))
+            validations-map)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn- build-steps [[head &amp; tail :as forms]]  
+  (let [forms (if (map? head)
+                (vec (mapcat identity head))
+                forms)]
+    (reduce (fn [acc [key-or-vec sym-or-coll :as rule]]
+              (cond
+               (vector? sym-or-coll)
+               (concat acc (build-multi-step key-or-vec sym-or-coll))
+               (map? sym-or-coll)
+               (concat acc (build-steps (merge-path key-or-vec
+                                                    sym-or-coll)))
+               :else (conj acc [sym-or-coll key-or-vec])))
+            []
+            (partition 2 forms))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn- pre-condition-met? [pre-fn map]
   (or (nil? pre-fn) (pre-fn map)))</pre></td></tr><tr><td class="docs"><p>Wraps pred in the context of validating a single value</p>
 
 <ul>
 <li><p><code>acc</code>  is the map being validated</p></li>
 <li><p><code>pred</code> is a validator</p></li>
-<li><p><code>k</code>    the path to the value to be validated in the associative structure acc</p></li>
+<li><p><code>k</code>    the path to the value to be validated in the associative structure <code>acc</code></p></li>
 <li><p><code>args</code> any extra args to pred</p>
 
 <p>It only runs pred if:</p></li>
@@ -3115,14 +3111,14 @@ it's pretty comprehensive.</p>
 
 <p>Returns <code>acc</code> augmented with a namespace qualified ::errors keyword</p></li>
 </ul>
-</td><td class="codes"><pre class="brush: clojure">(defn wrap
+</td><td class="codes"><pre class="brush: clojure">(defn- wrap
   [acc [pred k &amp; args]]
-  (let [pred (h/resolve-or-same pred)
-        k (if (vector? k) k [k])
+  (let [k (if (vector? k) k [k])
         error-path (cons ::errors k)
-        {:keys [default-message-format optional]} (meta pred)
+        {:keys [default-message-format optional]
+         :or {default-message-format &quot;Custom validation failed for %s&quot;
+              optional false}} (meta pred)
         [args opts] (split-with (complement keyword?) args)
-        args (map h/get-var-or-same args)
         {:keys [message pre] :or {message default-message-format}} (apply hash-map opts)
         pred-subject (get-in acc k)]
     (if (pre-condition-met? pre acc)
@@ -3141,28 +3137,30 @@ it's pretty comprehensive.</p>
 <p>  This function will run all validators against <code>old-state</code> and eventually return a vector with the result - the errors map - and the new state - the original map augmented with the errors map.</p>
 
 <p>  See also <code>wrap</code></p>
-</td><td class="codes"><pre class="brush: clojure">(defn wrap-chain
-  [fs]
+</td><td class="codes"><pre class="brush: clojure">(defn- wrap-chain
+  [&amp; fs]
   (fn [old-state]
     (let [new-state (reduce wrap
                             old-state
                             fs)]
-      [(::errors new-state) new-state])))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn emit-wrap [entry]
-  `(wrap-chain ~(second entry)))</pre></td></tr><tr><td class="docs"><p>Internal use.</p>
+      [(::errors new-state) new-state])))</pre></td></tr><tr><td class="docs"><p>Internal use.</p>
 
 <p>  Validates the map m using the validation functions fs.</p>
 
 <p>  Returns a vector where the first element is the map of validation errors if any and the second is the original map (possibly)augmented with the errors map.</p>
-</td><td class="codes"><pre class="brush: clojure">(defmacro validate*
-  [m &amp; fs]
-  (let [ignore (gensym &quot;ignore__&quot;)
-        result (gensym &quot;result__&quot;)
-        wrap-calls (map emit-wrap fs)
-        step-pairs (vec (interleave (repeat ignore) wrap-calls))]
-    `((m/domonad m/state-m
-                 ~(assoc step-pairs (- (count step-pairs) 2) result)
-                 ~result) ~m)))</pre></td></tr><tr><td class="docs"><h2>Public API</h2>
+</td><td class="codes"><pre class="brush: clojure">(defn- validate*
+  [m fs]
+  (letfn [(m-fn [fs]
+            (let [m-bind (:m-bind m/state-m)
+                  m-result (:m-result m/state-m)]
+              (cond
+               (&gt; (count fs) 1) (m-bind (bouncer.core/wrap-chain (first fs))
+                                        (fn [_]
+                                          (m-fn (rest fs))))
+               :else (m-bind (bouncer.core/wrap-chain (first fs))
+                             (fn [result]
+                               (m-result result))))))]
+    ((m-fn fs) m)))</pre></td></tr><tr><td class="docs"><h2>Public API</h2>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Validates the map m using the validations specified by forms.</p>
 
 <p>  forms can be a single validator set or a sequence of key/value pairs where:</p>
@@ -3171,48 +3169,32 @@ it's pretty comprehensive.</p>
 
 <p>  value ==> validation-function or
             validator-set or
-           (validation-function args+opts) or
+           [[validation-function args+opts]] or
            [validation-function another-validation-function] or
-           [validation-function (another-validation-function args+opts)]</p>
+           [validation-function [another-validation-function args+opts]]</p>
 
 <p>  e.g.:</p>
 
 <pre><code>  (core/validate a-map
            :name core/required
-           :age [core/required
-                 (core/number :message "age must be a number")]
+           :age  [core/required
+                 [core/number :message "age must be a number"]]
            [:passport :number] core/positive)
 </code></pre>
 
 <p>  Returns a vector where the first element is the map of validation errors if any and the second is the original map (possibly)augmented with the errors map.</p>
 
-<p>  See also <code>defvalidatorset</code></p>
-</td><td class="codes"><pre class="brush: clojure">(defmacro validate
+<p>  See also <code>defvalidator</code></p>
+</td><td class="codes"><pre class="brush: clojure">(defn validate
   [m &amp; forms]
-  (if (= (count forms) 1)
-    `(validate* ~m
-                ~@(group-by second (build-steps (var-get (h/resolve-or-same (first forms))))))
-    `(validate* ~m
-                ~@(group-by second (build-steps forms)))))</pre></td></tr><tr><td class="docs"><p>Takes a map and one or more validation functions with semantics provided by "validate". Returns true if the map passes all validations. False otherwise.</p>
-</td><td class="codes"><pre class="brush: clojure">(defmacro valid?
+  (validate* m (build-steps forms)))</pre></td></tr><tr><td class="docs"><p>Takes a map and one or more validation functions with semantics provided by "validate". Returns true if the map passes all validations. False otherwise.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn valid?
   [&amp; args]
-  `(empty? (first (validate ~@args))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#bouncer.helpers" name="bouncer.helpers"><h1 class="project-name">bouncer.helpers</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(ns bouncer.helpers
-  {:author &quot;Leonardo Borges&quot;})</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn resolve-or-same [form]
-  (if (and (symbol? form)
-           (resolve form))
-    (resolve form)
-    form))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn get-var-or-same [form]
-  (if (var? form)
-    (var-get form)
-    form))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#bouncer.validators" name="bouncer.validators"><h1 class="project-name">bouncer.validators</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>This namespace contains all built-in validators as well as
+  (empty? (first (apply validate args))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#bouncer.validators" name="bouncer.validators"><h1 class="project-name">bouncer.validators</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>This namespace contains all built-in validators as well as
           macros for defining new validators and validator sets</p>
 </td><td class="codes"><pre class="brush: clojure">(ns bouncer.validators
   {:author &quot;Leonardo Borges&quot;}
-  (:require [clojure.walk :as w]
-            [bouncer.helpers :as h]))</pre></td></tr><tr><td class="docs"><h2>Customization support</h2>
+  (:require [clojure.walk :as w]))</pre></td></tr><tr><td class="docs"><h2>Customization support</h2>
 
 <p>The following functions and macros support creating custom validators</p>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Defines a new validating function using args &amp; body semantics as provided by "defn".
@@ -3236,7 +3218,7 @@ it's pretty comprehensive.</p>
   (some #{value} coll))
 
 (validate {:age 10}
-  :age (in (range 5)))
+  :age [[member (range 5)]])
 </code></pre>
 
 <p>  This means the validator <code>member</code> will be called with the arguments <code>10</code> and <code>(0 1 2 3 4)</code>, 
@@ -3262,37 +3244,22 @@ it's pretty comprehensive.</p>
                   (next options)
                   options)
         [args &amp; body] options
-        fn-meta {:doc docstring
-                 :default-message-format default-message-format
+        fn-meta {:default-message-format default-message-format
                  :optional optional}]
-    `(defn ~(with-meta name fn-meta)
-       {:arglists '([~@args])}
-       ([~@args]
-          ~@body))))</pre></td></tr><tr><td class="docs"><h3>Composability</h3>
-</td><td class="codes"></td></tr><tr><td class="docs"><p>Defines a set of validators encapsulating a reusable validation unit.</p>
-
-<p>  forms should follow the semantics of "bouncer.core/validate"</p>
-
-<p>  e.g.:</p>
-
-<pre><code>(defvalidatorset addr-validator-set
-  :postcode  [v/required v/number]
-  :street    v/required
-  :country   v/required)
-
-(defvalidatorset person-validator-set
-  :name  [v/required v/number]
-  :address addr-validator-set)
-</code></pre>
-</td><td class="codes"><pre class="brush: clojure">(defmacro defvalidatorset
-  [name &amp; forms]
-  `(def ~(with-meta name {:bouncer-validator-set true})
-     '(~@(w/postwalk h/resolve-or-same forms))))</pre></td></tr><tr><td class="docs"><h2>Built-in validators</h2>
+    (let [arglists ''([name])]
+      `(do (def ~name
+             (with-meta (fn ~name 
+                          ([~@args]
+                             ~@body))
+               (merge ~fn-meta)))
+           (alter-meta! (var ~name) assoc
+                        :doc ~docstring
+                        :arglists '([~@args]))))))</pre></td></tr><tr><td class="docs"><h2>Built-in validators</h2>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Validates value is present.</p>
 
 <p>  If the value is a string, it makes sure it's not empty, otherwise it checks for nils.</p>
 
-<p>  For use with validation macros such as <code>validate</code> or <code>valid?</code></p>
+<p>  For use with validation functions such as <code>validate</code> or <code>valid?</code></p>
 </td><td class="codes"><pre class="brush: clojure">(defvalidator required
   {:default-message-format &quot;%s must be present&quot;}
   [value]
@@ -3300,36 +3267,37 @@ it's pretty comprehensive.</p>
     (not (empty? value))
     (not (nil? value))))</pre></td></tr><tr><td class="docs"><p>Validates maybe-a-number is a valid number.</p>
 
-<p>  For use with validation macros such as <code>validate</code> or <code>valid?</code></p>
+<p>  For use with validation functions such as <code>validate</code> or <code>valid?</code></p>
 </td><td class="codes"><pre class="brush: clojure">(defvalidator number
   {:default-message-format &quot;%s must be a number&quot; :optional true}
   [maybe-a-number]
   (number? maybe-a-number))</pre></td></tr><tr><td class="docs"><p>Validates number is a number and is greater than zero.</p>
 
-<p>  For use with validation macros such as <code>validate</code> or <code>valid?</code></p>
+<p>  For use with validation functions such as <code>validate</code> or <code>valid?</code></p>
 </td><td class="codes"><pre class="brush: clojure">(defvalidator positive
   {:default-message-format &quot;%s must be a positive number&quot; :optional true}
   [number]
   (&gt; number 0))</pre></td></tr><tr><td class="docs"><p>Validates value is a member of coll.</p>
 
-<p>  For use with validation macros such as <code>validate</code> or <code>valid?</code></p>
+<p>  For use with validation functions such as <code>validate</code> or <code>valid?</code></p>
 </td><td class="codes"><pre class="brush: clojure">(defvalidator member
   {:default-message-format &quot;%s must be one of the values in the list&quot;}
   [value coll]
   (some #{value} coll))</pre></td></tr><tr><td class="docs"><p>Validates pred is true for the given value.</p>
 
-<p>  For use with validation macros such as <code>validate</code> or <code>valid?</code></p>
+<p>  For use with validation functions such as <code>validate</code> or <code>valid?</code></p>
 </td><td class="codes"><pre class="brush: clojure">(defvalidator custom
   [value pred]
+  (println &quot;Warning: bouncer.validators/custom is deprecated and will be removed. Use plain functions instead.&quot;)
   (pred value))</pre></td></tr><tr><td class="docs"><p>Validates pred is true for every item in coll.</p>
 
-<p>  For use with validation macros such as <code>validate</code> or <code>valid?</code></p>
+<p>  For use with validation functions such as <code>validate</code> or <code>valid?</code></p>
 </td><td class="codes"><pre class="brush: clojure">(defvalidator every
   {:default-message-format &quot;All items in %s must satisfy the predicate&quot;}
   [coll pred]
   (every? pred coll))</pre></td></tr><tr><td class="docs"><p>Validates value satisfies the given regex pattern.</p>
 
-<p>   For use with validation macros such as <code>validate</code> or <code>valid?</code></p>
+<p>   For use with validation functions such as <code>validate</code> or <code>valid?</code></p>
 </td><td class="codes"><pre class="brush: clojure">(defvalidator matches
   {:default-message-format &quot;%s must satisfy the given pattern&quot; :optional true}
   [value re]
