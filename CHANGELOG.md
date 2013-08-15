@@ -1,3 +1,13 @@
+## 0.2.4 (UNRELEASED)
+
+> This release contains breaking changes: most macros have been removed in favour of pure functions and data structure literals. This means a lot less magic and better composability
+
+
+- `core/valid?` and `core/validate` rewritten as functions
+- remove `validators/defvalidatorset` macro in favor of standard maps
+- Updated README
+- Updated docstrings
+
 ## 0.2.3 (12/08/2013)
 
 - Validator sets can now be used at the top level call to `validate` and `valid?`.

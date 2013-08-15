@@ -1,33 +1,32 @@
 (ns bouncer.validators-test
   (:use clojure.test)
-  (:use [bouncer.validators :only [defvalidator defvalidatorset]])
   (:require [bouncer
              [core :as core]
              [validators :as v]]))
 
-(defvalidatorset addr-validator-set
-  :postcode [v/required v/number]
-  :street    v/required
-  :country   v/required
-  :past      (v/every #(not(nil? (:country %)))))
+(def addr-validator-set
+  {:postcode [v/required v/number]
+   :street    v/required
+   :country   v/required
+   :past      [[v/every #(not(nil? (:country %)))]]})
 
-(defvalidatorset addr-validator-set+custom-messages
-  :postcode [(v/required :message "required") (v/number :message "number")]
-  :street    (v/required :message "required")
-  :country   (v/required :message "required")
-  :past      (v/every #(not(nil? (:country %))) :message "every"))
+(def addr-validator-set+custom-messages
+  {:postcode [[v/required :message "required"] [v/number :message "number"]]
+   :street    [[v/required :message "required"]]
+   :country   [[v/required :message "required"]]
+   :past      [[v/every #(not(nil? (:country %))) :message "every"]]})
 
 
-(defvalidatorset address-validator
-  :postcode v/required)
+(def address-validator
+  {:postcode v/required})
 
-(defvalidatorset person-validator
-  :name v/required
-  :age [v/required v/number]
-  :address address-validator)
+(def person-validator
+  {:name v/required
+   :age [v/required v/number]
+   :address address-validator})
 
-(defvalidatorset deep-validator
-  :winner person-validator)
+(def deep-validator
+  {:winner person-validator})
 
 (deftest validator-sets
   (testing "validator sets for nested maps"
@@ -83,7 +82,7 @@
       (is (= errors-map
              (first (core/validate invalid-map
                                    :name v/required
-                                   :age (v/custom (complement empty?) :message "required")
+                                   :age [[(complement empty?) :message "required"]]
                                    [:passport :number] v/positive 
                                    :address addr-validator-set))))))
 
@@ -114,8 +113,8 @@
 
 (def valid-items #{:a :b :c})
 
-(defvalidatorset items-validator-set
-  :field1 (v/member valid-items))
+(def items-validator-set
+  {:field1 [[v/member valid-items]]})
 
 ;; addresses Issue https://github.com/leonardoborges/bouncer/issues/5
 (deftest nested-symbols
@@ -130,13 +129,13 @@
 (deftest range-validator
   (testing "presence of value in the given range"
     (is (core/valid? {:age 4}
-                  :age (v/member (range 5))))
+                  :age [[v/member (range 5)]]))
     (is (not (core/valid? {:age 5}
-                          :age (v/member (range 5)))))))
+                          :age [[v/member (range 5)]])))))
 
 (deftest regex-validator
   (testing "matching the given pattern"
     (is (core/valid? {:phone "555"}
-                  :phone (v/matches #"^\d+$")))
+                  :phone [[v/matches #"^\d+$"]]))
     (is (not (core/valid? {:phone "NaN"}
-                  :phone (v/matches #"^\d+$"))))))
+                  :phone [[v/matches #"^\d+$"]])))))
