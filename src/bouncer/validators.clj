@@ -2,8 +2,7 @@
   "This namespace contains all built-in validators as well as
           macros for defining new validators and validator sets"
   {:author "Leonardo Borges"}
-  (:require [clojure.walk :as w]
-            [bouncer.helpers :as h]))
+  (:require [clojure.walk :as w]))
 
 ;; ## Customization support
 ;;

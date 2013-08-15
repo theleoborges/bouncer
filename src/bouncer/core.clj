@@ -14,8 +14,7 @@ it's pretty comprehensive.
 If you'd like to know more about the motivation behind `bouncer`, check the
 [announcement post](http://www.leonardoborges.com/writings/2013/01/04/bouncer-validation-lib-for-clojure/)."
   {:author "Leonardo Borges"}
-  (:require [clojure.algo.monads :as m]
-            [bouncer.helpers :as h]))
+  (:require [clojure.algo.monads :as m]))
 
 
 
