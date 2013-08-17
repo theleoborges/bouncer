@@ -58,10 +58,11 @@
                   options)
         [args & body] options
         fn-meta {:default-message-format default-message-format
-                 :optional optional}]
+                 :optional optional
+                 :validator (keyword (str *ns*) (str name))}]
     (let [arglists ''([name])]
       `(do (def ~name
-             (with-meta (fn ~name 
+             (with-meta (fn ~name
                           ([~@args]
                              ~@body))
                (merge ~fn-meta)))

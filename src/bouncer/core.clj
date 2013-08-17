@@ -16,7 +16,8 @@ If you'd like to know more about the motivation behind `bouncer`, check the
   {:author "Leonardo Borges"}
   (:require [clojure.algo.monads :as m]))
 
-
+(def ^:dynamic *message-locator* (fn [validator property default-message] default-message))
+(def ^:dynamic *message-interpolator* format)
 
 ;; ## Internal utility functions
 
@@ -60,7 +61,7 @@ If you'd like to know more about the motivation behind `bouncer`, check the
                 [(apply vector (concat parent-key [key])) validations]))
             validations-map)))
 
-(defn- build-steps [[head & tail :as forms]]  
+(defn- build-steps [[head & tail :as forms]]
   (let [forms (if (map? head)
                 (vec (mapcat identity head))
                 forms)]
@@ -68,8 +69,8 @@ If you'd like to know more about the motivation behind `bouncer`, check the
               (cond
                (vector? sym-or-coll)
                (concat acc (build-multi-step key-or-vec sym-or-coll))
-               
-               
+
+
                (map? sym-or-coll)
                (concat acc (build-steps (merge-path key-or-vec
                                                     sym-or-coll)))
@@ -80,6 +81,9 @@ If you'd like to know more about the motivation behind `bouncer`, check the
 
 (defn- pre-condition-met? [pre-fn map]
   (or (nil? pre-fn) (pre-fn map)))
+
+(defn- key-as-path [k]
+  (keyword (clojure.string/join "." (map name k))))
 
 (defn- wrap
   "Wraps pred in the context of validating a single value
@@ -103,11 +107,12 @@ If you'd like to know more about the motivation behind `bouncer`, check the
   [acc [pred k & args]]
   (let [k (if (vector? k) k [k])
         error-path (cons ::errors k)
-        {:keys [default-message-format optional]
+        {:keys [default-message-format optional validator]
          :or {default-message-format "Custom validation failed for %s"
               optional false}} (meta pred)
         [args opts] (split-with (complement keyword?) args)
-        {:keys [message pre] :or {message default-message-format}} (apply hash-map opts)
+        {:keys [message pre]
+         :or {message (*message-locator* validator (key-as-path k) default-message-format)}} (apply hash-map opts)
         pred-subject (get-in acc k)]
     (if (pre-condition-met? pre acc)
       (if (or (and optional (nil? pred-subject))
@@ -115,7 +120,7 @@ If you'd like to know more about the motivation behind `bouncer`, check the
               (apply pred pred-subject args))
         acc
         (update-in acc error-path
-                   #(conj % (format message (name (peek k))))))
+                   #(conj % (*message-interpolator* message (name (peek k))))))
       acc)))
 
 
