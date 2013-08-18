@@ -386,6 +386,17 @@ Yup, it's that *simple*. Let's use it:
 
 In the example above, the validator will be called with `10` - that's the value the key `:age` holds - and `(0 1 2 3 4)` - which is the result of `(range 5)` and will be fed as the second argument to the validator.
 
+### Custom message sources
+
+Since *v0.3.0*, messages can be looked up dynamically by rebinding the `bouncer.core/*message-locator*` var.
+It is a function accepting 3 arguments:
+
+1. Validator name as a namespaced keyword if the validator has been defined as
+   a `defvalidator` (e.g. `::bouncer.validators/required`). In case validator is
+   anonymous - argument value will be `nil`.
+2. Path to the validated property as a keyword (e.g. `{:address {:street "Street"}} -> :address.street`)
+3. Message specified with `:message` or default message specified in `defvalidator` (backwards compatibility - used by default)
+
 ## Built-in validations
 
 I didn't spend a whole lot of time on *bouncer* so it only ships with the validations I've needed myself. At the moment they live in the validators namespace:

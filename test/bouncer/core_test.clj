@@ -115,7 +115,32 @@
                            :name [[v/required :message "Nome eh obrigatorio"]]
                            :year [[v/required :message "Ano eh obrigatorio"]]
                            :age [[v/positive :message "Idade deve ser maior que zero"]]
-                           :dob [[(complement nil?) :message "Nao pode ser nulo"]]))))))
+                           :dob [[(complement nil?) :message "Nao pode ser nulo"]])))))
+
+  (testing "custom message locator"
+    (is (= {
+            :age '("age should be positive")
+            :name '("name required")
+            :dob  '("Date of birth required")
+            :address  {:street   '("Street address required")}
+            :pets '("All pets should be named")
+            }
+           (first
+            (binding [core/*message-locator*
+                      (fn [validator property default-msg]
+                        (if-let [msg ({::v/required "%s required", ::v/positive "%s should be positive"} validator)]
+                          msg
+                          (if-let [msg (property {:pets "All pets should be named"
+                                                  :dob "Date of birth required"
+                                                  :address.street "Street address required"})]
+                            msg
+                            default-msg)))]
+              (core/validate {:age -1 :year "" :address {:street nil} :pets [{:name "Pet"}, {:name nil}]}
+                             :name v/required
+                             :age v/positive
+                             :dob (complement nil?)
+                             :pets [[v/every #(not (nil? (:name %)))]]
+                             [:address :street] (complement nil?))))))))
 
 (deftest validation-result
   (testing "invalid results"
