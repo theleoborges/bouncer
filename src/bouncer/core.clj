@@ -14,7 +14,8 @@ it's pretty comprehensive.
 If you'd like to know more about the motivation behind `bouncer`, check the
 [announcement post](http://www.leonardoborges.com/writings/2013/01/04/bouncer-validation-lib-for-clojure/)."
   {:author "Leonardo Borges"}
-  (:require [clojure.algo.monads :as m]))
+  (:require [clojure.algo.monads :as m]
+            [clojure.string :as string]))
 
 (def ^:dynamic *message-locator* (fn [validator property default-message] default-message))
 (def ^:dynamic *message-interpolator* format)
@@ -83,7 +84,7 @@ If you'd like to know more about the motivation behind `bouncer`, check the
   (or (nil? pre-fn) (pre-fn map)))
 
 (defn- key-as-path [k]
-  (keyword (clojure.string/join "." (map name k))))
+  (keyword (string/join "." (map name k))))
 
 (defn- wrap
   "Wraps pred in the context of validating a single value
