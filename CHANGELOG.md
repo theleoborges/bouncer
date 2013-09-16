@@ -7,6 +7,7 @@
 - remove `validators/defvalidatorset` macro in favor of standard maps
 - Updated README
 - Updated docstrings
+- Added email validation
 
 ## 0.2.3 (12/08/2013)
 

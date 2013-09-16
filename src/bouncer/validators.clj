@@ -133,3 +133,14 @@
   {:default-message-format "%s must satisfy the given pattern" :optional true}
   [value re]
   ((complement empty?) (re-seq re value)))
+
+(defvalidator email
+  "Validates value is an email address.
+
+  It implements a simple check to verify there's only a '@' and
+  at least one point after the '@'
+
+  For use with validation functions such as `validate` or `valid?`"
+  {:default-message-format "%s must be a valid email address"}
+  [value]
+  (and (required value) (matches value #"^[^@]+@[^@\\.]+[\\.].+")))

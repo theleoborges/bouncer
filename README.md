@@ -394,6 +394,8 @@ I didn't spend a whole lot of time on *bouncer* so it only ships with the valida
 
 - `bouncer.validators/number`
 
+- `bouncer.validators/email`
+
 - `bouncer.validators/positive`
 
 - `bouncer.validators/member`
