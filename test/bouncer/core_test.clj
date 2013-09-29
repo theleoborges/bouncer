@@ -88,6 +88,8 @@
 (defn first-error-for [key validation-result]
   (-> validation-result (first) key (first)))
 
+(def default-validate (partial core/validate core/with-default-messages))
+
 (deftest validation-messages
   (testing "default messages"
     (is (= {
@@ -97,11 +99,11 @@
             :age '("age must be a positive number")
             }
 
-           (first (core/validate {:age -1 :year ""}
-                                 :name v/required
-                                 :year v/number
-                                 :age v/positive
-                                 :dob (complement nil?))))))
+           (first (default-validate {:age -1 :year ""}
+                    :name v/required
+                    :year v/number
+                    :age v/positive
+                    :dob (complement nil?))))))
 
   (testing "custom messages"
     (is (= {
@@ -110,12 +112,11 @@
             :name '("Nome eh obrigatorio")
             :dob  '("Nao pode ser nulo")
             }
-           (first
-            (core/validate {:age -1 :year ""}
-                           :name [[v/required :message "Nome eh obrigatorio"]]
-                           :year [[v/required :message "Ano eh obrigatorio"]]
-                           :age [[v/positive :message "Idade deve ser maior que zero"]]
-                           :dob [[(complement nil?) :message "Nao pode ser nulo"]]))))))
+           (first (default-validate {:age -1 :year ""}
+                    :name [[v/required :message "Nome eh obrigatorio"]]
+                    :year [[v/required :message "Ano eh obrigatorio"]]
+                    :age [[v/positive :message "Idade deve ser maior que zero"]]
+                    :dob [[(complement nil?) :message "Nao pode ser nulo"]]))))))
 
 (deftest validation-result
   (testing "invalid results"
@@ -140,21 +141,19 @@
       (is (core/valid? valid-map
                        :pets [[v/every #(not (nil? (:name %)))]]))
 
-
-
       (is (not (core/valid? invalid-map
                             :pets [[v/every #(not (nil? (:name %)))]]))))
 
     (testing "default messages for nested colls"
-      (let [[result map] (core/validate invalid-map
-                                        :pets [[v/every #(not (nil? (:name %)))]])]
+      (let [[result map] (default-validate invalid-map
+                           :pets [[v/every #(not (nil? (:name %)))]])]
         (is (= "All items in pets must satisfy the predicate"
                (-> result :pets (first))))))
 
     (testing "custom messages for nested colls"
-      (let [[result map] (core/validate invalid-map
-                                        :pets [[v/every #(not (nil? (:name %)))
-                                                :message "All pets must have names"]])]
+      (let [[result map] (default-validate invalid-map
+                           :pets [[v/every #(not (nil? (:name %)))
+                                   :message "All pets must have names"]])]
         (is (= "All pets must have names"
                (-> result :pets (first)))))))
 
@@ -189,20 +188,20 @@
 (deftest early-exit
   (testing "short circuit validations for single entry"
     (is (= {:age '("age must be present")}
-           (first (core/validate {}
-                                 :age [v/required v/number v/positive]))))
+           (first (default-validate {}
+                    :age [v/required v/number v/positive]))))
 
     (is (= {:age '("age must be present")}
-           (first (core/validate {:age ""}
-                                 :age [v/required v/number v/positive]))))
+           (first (default-validate {:age ""}
+                    :age [v/required v/number v/positive]))))
 
     (is (= {:age '("age must be a number")}
-           (first (core/validate {:age "NaN"}
-                                 :age [v/required v/number v/positive]))))
+           (first (default-validate {:age "NaN"}
+                    :age [v/required v/number v/positive]))))
 
     (is (= {:age '("age must be a positive number")}
-           (first (core/validate {:age -7}
-                                 :age [v/required v/number v/positive]))))
+           (first (default-validate {:age -7}
+                    :age [v/required v/number v/positive]))))
 
     (let [config-params {:input-dir "some/directory/path"
                          :output-dir "some/other/directory/path"}]
@@ -210,20 +209,45 @@
               :output-dir '("output-dir must be a valid directory")
               :input-dir  '("input-dir must be a valid directory")
               }
-             (first (core/validate config-params
-                                   :input-dir [v/required directory readable]
-                                   :output-dir [v/required directory writeable])))))))
+             (first (default-validate config-params
+                      :input-dir [v/required directory readable]
+                      :output-dir [v/required directory writeable])))))))
+
+
+(defn pred-fn [x]
+  (not (nil? (:country x))))
 
 (deftest all-validations
   (testing "all built-in validators"
     (let [errors-map {
-                      :age    '("age must be present")
-                      :mobile '("wrong format")
-                      :car    '("car must be one of the values in the list")
-                      :dob    '("dob must be a number")
-                      :name   '("name must be present")
-                      :passport {:number '("number must be a positive number")}
-                      :address  {:past   '("All items in past must satisfy the predicate")}
+                      :age    '({:path [:age], :value "", :args nil, :message nil
+                                 :metadata {:default-message-format "%s must be present"
+                                            :optional false
+                                            :validator :bouncer.validators/required}})
+                      :mobile '({:path [:mobile], :value nil, :args nil, :message "wrong format"
+                                 :metadata {:default-message-format "Custom validation failed for %s"
+                                            :optional false}})
+                      :car    '({:path [:car], :value nil, :args [["Ferrari" "Mustang" "Mini"]], :message nil
+                                 :metadata {:default-message-format "%s must be one of the values in the list"
+                                            :optional false
+                                            :validator :bouncer.validators/member}})
+                      :dob    '({:path [:dob], :value "NaN", :args nil, :message nil
+                                 :metadata {:default-message-format "%s must be a number"
+                                            :optional true
+                                            :validator :bouncer.validators/number}})
+                      :name   '({:path [:name], :value nil, :args nil, :message nil
+                                 :metadata {:default-message-format "%s must be present"
+                                            :optional false
+                                            :validator :bouncer.validators/required}})
+                      :passport {:number '({:path [:passport :number], :value -7, :args nil, :message nil
+                                            :metadata {:default-message-format "%s must be a positive number"
+                                                       :optional true
+                                                       :validator :bouncer.validators/positive}})}
+                      :address  {:past   (list {:path [:address :past], :value [{:country nil} {:country "Brasil"}],
+                                                :args [pred-fn] :message nil
+                                                :metadata {:default-message-format "All items in %s must satisfy the predicate"
+                                                           :optional false
+                                                           :validator :bouncer.validators/every}})}
                       }
           invalid-map {:name nil
                        :age ""
@@ -238,8 +262,8 @@
                                    :mobile [[string? :message "wrong format"]]
                                    :car [[v/member ["Ferrari" "Mustang" "Mini"]]]
                                    :dob v/number
-                                   [:passport :number] v/positive 
-                                   [:address :past] [[v/every #(not (nil? (:country %)))]])))))))
+                                   [:passport :number] v/positive
+                                   [:address :past] [[v/every pred-fn]])))))))
 
 
 (deftest pipelining-validations

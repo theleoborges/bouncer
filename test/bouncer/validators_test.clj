@@ -27,6 +27,8 @@
 (def deep-validator
   {:winner person-validator})
 
+(def default-validate (partial core/validate core/with-default-messages))
+
 (deftest validator-sets
   (testing "validator sets for nested maps"
     (is (core/valid? {:address {:postcode 2000
@@ -37,19 +39,19 @@
 
     (is (not (core/valid? {}
                        :address addr-validator-set)))
-    
+
     (let [errors-map {:address {
                                 :postcode '("postcode must be present")
-                                :street    '("street must be present")
-                                :country   '("country must be present")
+                                :street   '("street must be present")
+                                :country  '("country must be present")
                                 :past '("All items in past must satisfy the predicate")
                                 }}
           invalid-map {:address {:postcode ""
                                  :past [{:country nil} {:country "Brasil"}]}}]
       (is (= errors-map
-             (first (core/validate invalid-map
+             (first (default-validate invalid-map
                                    :address addr-validator-set))))))
-  
+
   (testing "custom messages in validator sets"
     (let [errors-map {:address {
                                 :postcode '("required")
@@ -60,9 +62,9 @@
           invalid-map {:address {:postcode ""
                                  :past [{:country nil} {:country "Brasil"}]}}]
       (is (= errors-map
-             (first (core/validate invalid-map
+             (first (default-validate invalid-map
                                    :address addr-validator-set+custom-messages))))))
-  
+
   (testing "validator sets and standard validators together"
     (let [errors-map {:age '("required")
                       :name '("name must be present")
@@ -79,10 +81,10 @@
                        :address {:postcode "NaN"
                                  :past [{:country nil} {:country "Brasil"}]}}]
       (is (= errors-map
-             (first (core/validate invalid-map
+             (first (default-validate invalid-map
                                    :name v/required
                                    :age [[(complement empty?) :message "required"]]
-                                   [:passport :number] v/positive 
+                                   [:passport :number] v/positive
                                    :address addr-validator-set))))))
 
   (testing "composing validator sets at the top level"
@@ -98,7 +100,7 @@
                       :name '("name must be present")
                       :age  '("age must be present")}]
       (is (= errors-map
-             (first (core/validate {}
+             (first (default-validate {}
                                    person-validator)))))
 
     ;; Test for issue #7 on github
@@ -106,7 +108,7 @@
                                :name '("name must be present")
                                :age  '("age must be present")}}]
       (is (= errors-map
-             (first (core/validate {}
+             (first (default-validate {}
                                    deep-validator)))))))
 
 

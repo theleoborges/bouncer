@@ -100,14 +100,21 @@ If you'd like to know more about the motivation behind `bouncer`, check the
 
   Returns `acc` augmented with a namespace qualified ::errors keyword
 "
-  [acc [pred k & args]]
+  [message-fn acc [pred k & args]]
   (let [k (if (vector? k) k [k])
         error-path (cons ::errors k)
-        {:keys [default-message-format optional]
-         :or {default-message-format "Custom validation failed for %s"
-              optional false}} (meta pred)
+
+        {:keys [optional default-message-format]
+         :or {optional false
+              default-message-format "Custom validation failed for %s"}
+         :as metadata} (meta pred)
+
+        meta-with-defaults
+        (merge metadata {:default-message-format default-message-format
+                         :optional optional})
+
         [args opts] (split-with (complement keyword?) args)
-        {:keys [message pre] :or {message default-message-format}} (apply hash-map opts)
+        {:keys [message pre]} (apply hash-map opts)
         pred-subject (get-in acc k)]
     (if (pre-condition-met? pre acc)
       (if (or (and optional (nil? pred-subject))
@@ -115,7 +122,10 @@ If you'd like to know more about the motivation behind `bouncer`, check the
               (apply pred pred-subject args))
         acc
         (update-in acc error-path
-                   #(conj % (format message (name (peek k))))))
+                   #(conj % (message-fn {:path k, :value pred-subject
+                                         :args (seq args)
+                                         :metadata meta-with-defaults
+                                         :message message}))))
       acc)))
 
 
@@ -130,9 +140,9 @@ If you'd like to know more about the motivation behind `bouncer`, check the
 
   See also `wrap`
 "
-  [& fs]
+  [message-fn & fs]
   (fn [old-state]
-    (let [new-state (reduce wrap
+    (let [new-state (reduce (partial wrap message-fn)
                             old-state
                             fs)]
       [(::errors new-state) new-state])))
@@ -143,20 +153,26 @@ If you'd like to know more about the motivation behind `bouncer`, check the
   Validates the map m using the validation functions fs.
 
   Returns a vector where the first element is the map of validation errors if any and the second is the original map (possibly)augmented with the errors map."
-  [m fs]
+  [message-fn m fs]
   (letfn [(m-fn [fs]
             (let [m-bind (:m-bind m/state-m)
                   m-result (:m-result m/state-m)]
               (cond
-               (> (count fs) 1) (m-bind (bouncer.core/wrap-chain (first fs))
-                                        (fn [_]
-                                          (m-fn (rest fs))))
-               :else (m-bind (bouncer.core/wrap-chain (first fs))
-                             (fn [result]
-                               (m-result result))))))]
+                (> (count fs) 1) (m-bind
+                                   (bouncer.core/wrap-chain message-fn (first fs))
+                                   (fn [_]
+                                     (m-fn (rest fs))))
+                :else (m-bind (bouncer.core/wrap-chain message-fn (first fs))
+                              (fn [result]
+                                (m-result result))))))]
     ((m-fn fs) m)))
 
 ;; ## Public API
+
+(defn with-default-messages [error]
+  (let [{:keys [message path metadata]} error]
+    (format (or message (:default-message-format metadata))
+            (name (peek path)))))
 
 (defn validate
   "Validates the map m using the validations specified by forms.
@@ -184,8 +200,12 @@ If you'd like to know more about the motivation behind `bouncer`, check the
 
   See also `defvalidator`
 "
-  [m & forms]
-  (validate* m (build-steps forms)))
+  [& args]
+  (let [[message-fn args] (if (fn? (first args))
+                                   [(first args) (next args)]
+                                   [identity args])
+        [m forms] [(first args) (next args)]]
+    (validate* message-fn m (build-steps forms))))
 
 (defn valid?
   "Takes a map and one or more validation functions with semantics provided by \"validate\". Returns true if the map passes all validations. False otherwise."

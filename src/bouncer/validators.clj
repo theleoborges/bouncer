@@ -1,8 +1,7 @@
 (ns bouncer.validators
   "This namespace contains all built-in validators as well as
           macros for defining new validators and validator sets"
-  {:author "Leonardo Borges"}
-  (:require [clojure.walk :as w]))
+  {:author "Leonardo Borges"})
 
 ;; ## Customization support
 ;;
@@ -34,37 +33,23 @@
       :age [[member (range 5)]])
 
 
-  This means the validator `member` will be called with the arguments `10` and `(0 1 2 3 4)`, 
+  This means the validator `member` will be called with the arguments `10` and `(0 1 2 3 4)`,
   in that order.
 "
   {:arglists '([name docstring? opts-map? [args*] & body])}
   [name & options]
-  (let [docstring (if (string? (first options))
-                    (first options)
-                    nil)
-        options (if (string? (first options))
-                  (next options)
-                  options)
-        {
-         :keys [default-message-format optional]
-         :or {
-              default-message-format "Custom validation failed for %s"
-              optional false}
-         } (if (map? (first options))
-             (first options)
-             {})
-        options (if (map? (first options))
-                  (next options)
-                  options)
-        [args & body] options
-        fn-meta {:default-message-format default-message-format
-                 :optional optional}]
+  (let [[docstring options] (if (string? (first options))
+                                 [(first options) (next options)]
+                                 [nil options])
+        [fn-meta [args & body]] (if (map? (first options))
+                                  [(first options) (next options)]
+                                  [nil options])
+        fn-meta (assoc fn-meta
+                       :validator (keyword (str *ns*) (str name)))]
     (let [arglists ''([name])]
-      `(do (def ~name
-             (with-meta (fn ~name 
-                          ([~@args]
-                             ~@body))
-               (merge ~fn-meta)))
+      `(do (def ~name (with-meta (fn ~name
+                                   ([~@args]
+                                    ~@body)) ~fn-meta))
            (alter-meta! (var ~name) assoc
                         :doc ~docstring
                         :arglists '([~@args]))))))
