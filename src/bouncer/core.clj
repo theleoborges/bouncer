@@ -60,7 +60,7 @@ If you'd like to know more about the motivation behind `bouncer`, check the
                 [(apply vector (concat parent-key [key])) validations]))
             validations-map)))
 
-(defn- build-steps [[head & tail :as forms]]  
+(defn- build-steps [[head & tail :as forms]]
   (let [forms (if (map? head)
                 (vec (mapcat identity head))
                 forms)]
@@ -68,8 +68,8 @@ If you'd like to know more about the motivation behind `bouncer`, check the
               (cond
                (vector? sym-or-coll)
                (concat acc (build-multi-step key-or-vec sym-or-coll))
-               
-               
+
+
                (map? sym-or-coll)
                (concat acc (build-steps (merge-path key-or-vec
                                                     sym-or-coll)))

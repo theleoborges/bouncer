@@ -16,7 +16,6 @@
    :country   [[v/required :message "required"]]
    :past      [[v/every #(not(nil? (:country %))) :message "every"]]})
 
-
 (def address-validator
   {:postcode v/required})
 

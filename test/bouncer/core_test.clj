@@ -260,13 +260,13 @@
 
     (is (not (core/valid? {:a 1 :b "X"}
                           :b [[v/member #{"Y" "Z"} :pre (comp pos? :a)]])))
-    
+
     (is (core/valid? {:a -1 :b "Z"}
                      :b [[v/member #{"Y" "Z"} :pre (comp pos? :a)]]))
 
     (is (core/valid? {:a -1 :b "X"}
                      :b [[v/member #{"Y" "Z"} :pre (comp pos? :a)]]))
-    
+
     (is (not (core/valid? {:a 1 :b "Z"}
                           :b [[v/member #{"Y" "Z"} :pre (comp pos? :a)]]
                           :c v/required)))))
