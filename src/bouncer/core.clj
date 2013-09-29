@@ -169,13 +169,26 @@ If you'd like to know more about the motivation behind `bouncer`, check the
 
 ;; ## Public API
 
-(defn with-default-messages [error]
+(defn with-default-messages
+  "Use together with `validate`, e.g.:
+
+
+      (core/validate core/with-default-messages {}
+                     :name v/required)"
+  [error]
   (let [{:keys [message path metadata]} error]
     (format (or message (:default-message-format metadata))
             (name (peek path)))))
 
 (defn validate
-  "Validates the map m using the validations specified by forms.
+  "Takes a
+
+  - `message-fn` (optional) responsible for transforming error metadata into
+  the validation result (e.g. `with-default-messages`)
+
+  - `m` map to be validated
+
+  - `forms` validations to be performed on the map
 
   forms can be a single validator set or a sequence of key/value pairs where:
 
@@ -189,14 +202,17 @@ If you'd like to know more about the motivation behind `bouncer`, check the
 
   e.g.:
 
+
       (core/validate a-map
-               :name core/required
-               :age  [core/required
-                     [core/number :message \"age must be a number\"]]
-               [:passport :number] core/positive)
+               :name v/required
+               :age  [v/required
+                     [v/number :message \"age must be a number\"]]
+               [:passport :number] v/positive)
 
 
-  Returns a vector where the first element is the map of validation errors if any and the second is the original map (possibly)augmented with the errors map.
+  Returns a vector where the first element is the map of validation errors if
+  any and the second is the original map (possibly) augmented with the errors
+  map.
 
   See also `defvalidator`
 "

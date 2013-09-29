@@ -13,9 +13,14 @@
 
   opts-map is a map of key-value pairs and may be one of:
 
-  `:default-message-format` used when the client of this validator doesn't provide a message
+  - `:default-message-format` used when the client of this validator doesn't
+  provide a message (consider using custom message functions)
 
-  `:optional` whether the validation should be run only if the given key has a non-nil value in the map. Defaults to false.
+  - `:optional` whether the validation should be run only if the given key has
+  a non-nil value in the map. Defaults to false.
+
+  or any other key-value pair which will be available in the validation result
+  under the `:metadata` key.
 
   The function will be called with the value being validated as its first argument.
 
