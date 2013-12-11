@@ -54,7 +54,7 @@ Then, require the library:
 (require '[bouncer [core :as b] [validators :as v]])
 ```
 
-*bouncer* provides two main macros, `validate` and `valid?`
+*bouncer* provides two main validation functions, `validate` and `valid?`
 
 `valid?` is a convenience function built on top of `validate`:
 
