@@ -145,7 +145,7 @@ If you'd like to know more about the motivation behind `bouncer`, check the
   Returns a vector where the first element is the map of validation errors if any and the second is the original map (possibly)augmented with the errors map."
   [m fs]
   (letfn [(m-fn [fs]
-            (let [{:keys [m-bind m-result]} m/state-m]
+            (m/with-monad m/state-m
               (cond
                (> (count fs) 1) (m-bind (bouncer.core/wrap-chain (first fs))
                                         (fn [_]
