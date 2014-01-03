@@ -35,7 +35,7 @@ Check [this blog post](http://www.leonardoborges.com/writings/2013/01/04/bouncer
 If you're using leiningen, add it as a dependency to your project:
 
 ```clojure
-[bouncer "0.3.0-alpha1"]
+[bouncer "0.3.0"]
 ```
 
 Or if you're using maven:
@@ -44,7 +44,7 @@ Or if you're using maven:
 <dependency>
   <groupId>bouncer</groupId>
   <artifactId>bouncer</artifactId>
-  <version>0.3.0-alpha1</version>
+  <version>0.3.0</version>
 </dependency>
 ```
 
@@ -436,6 +436,6 @@ It'll run all tests against Clojure 1.3, 1.4 and 1.5 - make sure all tests pass 
 
 ## License
 
-Copyright © 2012-2013 [Leonardo Borges](http://www.leonardoborges.com)
+Copyright © 2012-2014 [Leonardo Borges](http://www.leonardoborges.com)
 
 Distributed under the [MIT License](http://opensource.org/licenses/MIT).
