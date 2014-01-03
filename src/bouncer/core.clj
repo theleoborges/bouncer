@@ -183,7 +183,7 @@ If you'd like to know more about the motivation behind `bouncer`, check the
   "Takes a
 
   - `message-fn` (optional) responsible for transforming error metadata into
-  the validation result (e.g. `with-default-messages`)
+  the validation result (defaults to `with-default-messages`)
 
   - `m` map to be validated
 
@@ -218,7 +218,7 @@ If you'd like to know more about the motivation behind `bouncer`, check the
   [& args]
   (let [[message-fn args] (if (fn? (first args))
                                    [(first args) (next args)]
-                                   [identity args])
+                                   [with-default-messages args])
         [m forms] [(first args) (next args)]]
     (validate* message-fn m (build-steps forms))))
 

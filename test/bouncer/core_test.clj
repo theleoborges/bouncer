@@ -88,8 +88,6 @@
 (defn first-error-for [key validation-result]
   (-> validation-result (first) key (first)))
 
-(def default-validate (partial core/validate core/with-default-messages))
-
 (deftest validation-messages
   (testing "default messages"
     (is (= {
@@ -99,7 +97,7 @@
             :age '("age must be a positive number")
             }
 
-           (first (default-validate {:age -1 :year ""}
+           (first (core/validate {:age -1 :year ""}
                     :name v/required
                     :year v/number
                     :age v/positive
@@ -112,7 +110,7 @@
             :name '("Nome eh obrigatorio")
             :dob  '("Nao pode ser nulo")
             }
-           (first (default-validate {:age -1 :year ""}
+           (first (core/validate {:age -1 :year ""}
                     :name [[v/required :message "Nome eh obrigatorio"]]
                     :year [[v/required :message "Ano eh obrigatorio"]]
                     :age [[v/positive :message "Idade deve ser maior que zero"]]
@@ -145,13 +143,13 @@
                             :pets [[v/every #(not (nil? (:name %)))]]))))
 
     (testing "default messages for nested colls"
-      (let [[result map] (default-validate invalid-map
+      (let [[result map] (core/validate invalid-map
                            :pets [[v/every #(not (nil? (:name %)))]])]
         (is (= "All items in pets must satisfy the predicate"
                (-> result :pets (first))))))
 
     (testing "custom messages for nested colls"
-      (let [[result map] (default-validate invalid-map
+      (let [[result map] (core/validate invalid-map
                            :pets [[v/every #(not (nil? (:name %)))
                                    :message "All pets must have names"]])]
         (is (= "All pets must have names"
@@ -188,19 +186,19 @@
 (deftest early-exit
   (testing "short circuit validations for single entry"
     (is (= {:age '("age must be present")}
-           (first (default-validate {}
+           (first (core/validate {}
                     :age [v/required v/number v/positive]))))
 
     (is (= {:age '("age must be present")}
-           (first (default-validate {:age ""}
+           (first (core/validate {:age ""}
                     :age [v/required v/number v/positive]))))
 
     (is (= {:age '("age must be a number")}
-           (first (default-validate {:age "NaN"}
+           (first (core/validate {:age "NaN"}
                     :age [v/required v/number v/positive]))))
 
     (is (= {:age '("age must be a positive number")}
-           (first (default-validate {:age -7}
+           (first (core/validate {:age -7}
                     :age [v/required v/number v/positive]))))
 
     (let [config-params {:input-dir "some/directory/path"
@@ -209,7 +207,7 @@
               :output-dir '("output-dir must be a valid directory")
               :input-dir  '("input-dir must be a valid directory")
               }
-             (first (default-validate config-params
+             (first (core/validate config-params
                       :input-dir [v/required directory readable]
                       :output-dir [v/required directory writeable])))))))
 
@@ -256,7 +254,8 @@
                        :address {:current { :country "Australia"}
                                  :past [{:country nil} {:country "Brasil"}]}}]
       (is (= errors-map
-             (first (core/validate invalid-map
+             (first (core/validate identity
+                                   invalid-map
                                    :name v/required
                                    :age v/required
                                    :mobile [[string? :message "wrong format"]]

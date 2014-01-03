@@ -1,3 +1,9 @@
+## 0.3.1-alpha1 (NOT RELEASED)
+
+- Merge [PR #14](https://github.com/leonardoborges/bouncer/pull/14): "Validation results as error metadata"
+
+This pull request allows users of the library to customise errors messages in a number of different ways. Please see section *"Internationalization and advanced error messages"* in the README.
+
 ## 0.3.0 (03/01/2014)
 
 > This release contains breaking changes: most macros have been removed in favour of pure functions and data structure literals. This means a lot less magic and better composability

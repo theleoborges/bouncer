@@ -19,6 +19,7 @@ A validation DSL for Clojure apps
     * [Custom validators using arbitrary functions](#custom-validations-using-arbitrary-functions)
     * [Writing validators](#writing-validators)
         * [Validators and arbitrary number of arguments](#validators-and-arbitrary-number-of-arguments)
+	* [Internationalization and advanced error messages] (#internationalization-and-advanced-error-messages)        
 * [Built-in validators](#built-in-validations)
 * [Contributing](#contributing)
 * [TODO](#todo)
@@ -47,6 +48,13 @@ Or if you're using maven:
   <version>0.3.0</version>
 </dependency>
 ```
+
+Or to use the current development release:
+
+```clojure
+[bouncer "0.3.1-beta1"]
+```
+
 
 Then, require the library:
 
@@ -230,7 +238,6 @@ Let's now make it fail:
 ;; false
 ```
 
-
 ## Validator sets
 
 If you find yourself repeating a set of validators over and over, chances are you will want to group and compose them somehow. Validator sets are simply plain Clojure maps:
@@ -386,6 +393,98 @@ Yup, it's that *simple*. Let's use it:
 
 In the example above, the validator will be called with `10` - that's the value the key `:age` holds - and `(0 1 2 3 4)` - which is the result of `(range 5)` and will be fed as the second argument to the validator.
 
+### Internationalization and advanced error messages
+
+In some cases the default behaviour might not be enough. 
+
+Perhaps you'd like to customise your error messages with the value that has been provided. 
+
+Or maybe you need access to the options that were given to a specific validator. 
+
+And what if you need to know which validator generated a specific error message?
+
+Since *0.3.1-alpha1*, this is possible. `validate` takes as an optional first argument a function - called a *message-fn* - that is applied to a map containing validation metadata that allows you to customise error messages in any way you like - or even return other data structures instead.
+
+This map has the following keys:
+
+- :path - where in the map has the error ocurred? 
+- :value - what was the value at the time of the validation?
+- :args - which arguments - if any - were passed to the validator?
+- :metadata - what is the metadata associated with this validation?
+- :message - what - if any - is the message passed to this validator instance?
+
+Let's see how this works in practice. For the first example, we'll simply use `identity` as our *message-fn*:
+
+```clojure
+(def person {:name "Leo" :age "NaN"})
+
+(b/validate identity
+            person
+            :name v/required
+            :age  v/number)
+```
+
+As you can see we simply supply `identity` as the first argument. This is what gets returned:
+
+```clojure
+[{:age
+  ({:path [:age],
+    :value "NaN",
+    :args nil,
+    :metadata
+    {:optional true,
+     :default-message-format "%s must be a number",
+     :validator :bouncer.validators/number},
+    :message nil})}
+ {:age "NaN",
+  :name "Leo",
+  :bouncer.core/errors
+  {:age
+   ({:path [:age],
+     :value "NaN",
+     :args nil,
+     :metadata
+     {:optional true,
+      :default-message-format "%s must be a number",
+      :validator :bouncer.validators/number},
+     :message nil})}}]
+```
+
+Contrast this with what the function would have returned by default:
+
+```clojure
+[{:age ("age must be a number")}
+ {:age "NaN",
+  :name "Leo",
+  :bouncer.core/errors {:age ("age must be a number")}}]
+```
+
+This opens a number of possibilities around customising errors messages. Let's create a simple *message-fn* to illustrate:
+
+```clojure
+(defn custom-message-fn [{:keys [path value metadata]}]
+  (format "'%s' in field %s should be a %s" value path (:validator metadata)))
+  
+(b/validate custom-message-fn
+            person
+            :name v/required
+            :age  v/number)
+```
+
+This time we get a much more informative message:
+
+```clojure
+[{:age ("'NaN' in field [:age] should be a :bouncer.validators/number")}
+ {:age "NaN",
+  :name "Leo",
+  :bouncer.core/errors
+  {:age
+   ("NaN in field [:age] should be a :bouncer.validators/number")}}]
+```
+
+Hats off to [@dm3](https://github.com/dm3) for this pull request.
+
+
 ## Built-in validations
 
 I didn't spend a whole lot of time on *bouncer* so it only ships with the validations I've needed myself. At the moment they live in the validators namespace:
@@ -431,8 +530,9 @@ It'll run all tests against Clojure 1.3, 1.4 and 1.5 - make sure all tests pass 
 
 ## CONTRIBUTORS
 
-- [leonardoborges](https://github.com/leonardoborges)
-- [ghoseb](https://github.com/ghoseb)
+- [@leonardoborges](https://github.com/leonardoborges)
+- [@ghoseb](https://github.com/ghoseb)
+- [@dm3](https://github.com/dm3)
 
 ## License
 
