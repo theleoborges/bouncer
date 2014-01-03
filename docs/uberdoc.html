@@ -3028,7 +3028,7 @@ net.brehaut.ClojureTools = (function (SH) {
     build_tree: build_tree
   };
 })(SyntaxHighlighter);
-</script><title>bouncer -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">bouncer</h1><h2 class="project-version">0.3.0</h2><br /><p>A validation DSL for Clojure apps</p>
+</script><title>bouncer -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">bouncer</h1><h2 class="project-version">0.3.1-beta1</h2><br /><p>A validation DSL for Clojure apps</p>
 </div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.5.1</td></tr><tr><td class="dep-name">org.clojure/algo.monads</td><td class="dotted"><hr /></td><td class="dep-version">0.1.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#bouncer.core">bouncer.core</a></li><li><a href="#bouncer.validators">bouncer.validators</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#bouncer.core" name="bouncer.core"><h1 class="project-name">bouncer.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>The <code>core</code> namespace provides the two main entry point functions in bouncer:</p>
 
 <ul>
@@ -3081,7 +3081,7 @@ it's pretty comprehensive.</p>
                 [(apply vector (concat parent-key key)) validations]
                 [(apply vector (concat parent-key [key])) validations]))
             validations-map)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn- build-steps [[head &amp; tail :as forms]]  
+</td><td class="codes"><pre class="brush: clojure">(defn- build-steps [[head &amp; tail :as forms]]
   (let [forms (if (map? head)
                 (vec (mapcat identity head))
                 forms)]
@@ -3112,14 +3112,18 @@ it's pretty comprehensive.</p>
 <p>Returns <code>acc</code> augmented with a namespace qualified ::errors keyword</p></li>
 </ul>
 </td><td class="codes"><pre class="brush: clojure">(defn- wrap
-  [acc [pred k &amp; args]]
+  [message-fn acc [pred k &amp; args]]
   (let [k (if (vector? k) k [k])
         error-path (cons ::errors k)
-        {:keys [default-message-format optional]
-         :or {default-message-format &quot;Custom validation failed for %s&quot;
-              optional false}} (meta pred)
+        {:keys [optional default-message-format]
+         :or {optional false
+              default-message-format &quot;Custom validation failed for %s&quot;}
+         :as metadata} (meta pred)
+        meta-with-defaults
+        (merge metadata {:default-message-format default-message-format
+                         :optional optional})
         [args opts] (split-with (complement keyword?) args)
-        {:keys [message pre] :or {message default-message-format}} (apply hash-map opts)
+        {:keys [message pre]} (apply hash-map opts)
         pred-subject (get-in acc k)]
     (if (pre-condition-met? pre acc)
       (if (or (and optional (nil? pred-subject))
@@ -3127,7 +3131,10 @@ it's pretty comprehensive.</p>
               (apply pred pred-subject args))
         acc
         (update-in acc error-path
-                   #(conj % (format message (name (peek k))))))
+                   #(conj % (message-fn {:path k, :value pred-subject
+                                         :args (seq args)
+                                         :metadata meta-with-defaults
+                                         :message message}))))
       acc)))</pre></td></tr><tr><td class="docs"><p>Internal Use.</p>
 
 <p>  Chain of responsibility.</p>
@@ -3138,9 +3145,9 @@ it's pretty comprehensive.</p>
 
 <p>  See also <code>wrap</code></p>
 </td><td class="codes"><pre class="brush: clojure">(defn- wrap-chain
-  [&amp; fs]
+  [message-fn &amp; fs]
   (fn [old-state]
-    (let [new-state (reduce wrap
+    (let [new-state (reduce (partial wrap message-fn)
                             old-state
                             fs)]
       [(::errors new-state) new-state])))</pre></td></tr><tr><td class="docs"><p>Internal use.</p>
@@ -3149,51 +3156,72 @@ it's pretty comprehensive.</p>
 
 <p>  Returns a vector where the first element is the map of validation errors if any and the second is the original map (possibly)augmented with the errors map.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn- validate*
-  [m fs]
+  [message-fn m fs]
   (letfn [(m-fn [fs]
             (m/with-monad m/state-m
               (cond
-               (&gt; (count fs) 1) (m-bind (bouncer.core/wrap-chain (first fs))
-                                        (fn [_]
-                                          (m-fn (rest fs))))
-               :else (m-bind (bouncer.core/wrap-chain (first fs))
-                             (fn [result]
-                               (m-result result))))))]
+                (&gt; (count fs) 1) (m-bind
+                                   (bouncer.core/wrap-chain message-fn (first fs))
+                                   (fn [_]
+                                     (m-fn (rest fs))))
+                :else (m-bind (bouncer.core/wrap-chain message-fn (first fs))
+                              (fn [result]
+                                (m-result result))))))]
     ((m-fn fs) m)))</pre></td></tr><tr><td class="docs"><h2>Public API</h2>
-</td><td class="codes"></td></tr><tr><td class="docs"><p>Validates the map m using the validations specified by forms.</p>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>Use together with <code>validate</code>, e.g.:</p>
 
-<p>  forms can be a single validator set or a sequence of key/value pairs where:</p>
-
-<p>  key   ==> :keyword or [:a :path]</p>
-
-<p>  value ==> validation-function or
-            validator-set or
-           [[validation-function args+opts]] or
-           [validation-function another-validation-function] or
-           [validation-function [another-validation-function args+opts]]</p>
-
-<p>  e.g.:</p>
-
-<pre><code>  (core/validate a-map
-           :name core/required
-           :age  [core/required
-                 [core/number :message "age must be a number"]]
-           [:passport :number] core/positive)
+<pre><code>  (core/validate core/with-default-messages {}
+                 :name v/required)
 </code></pre>
+</td><td class="codes"><pre class="brush: clojure">(defn with-default-messages
+  [error]
+  (let [{:keys [message path metadata]} error]
+    (format (or message (:default-message-format metadata))
+            (name (peek path)))))</pre></td></tr><tr><td class="docs"><p>Takes a</p>
 
-<p>  Returns a vector where the first element is the map of validation errors if any and the second is the original map (possibly)augmented with the errors map.</p>
+<ul>
+<li><p><code>message-fn</code> (optional) responsible for transforming error metadata into
+the validation result (defaults to <code>with-default-messages</code>)</p></li>
+<li><p><code>m</code> map to be validated</p></li>
+<li><p><code>forms</code> validations to be performed on the map</p>
 
-<p>  See also <code>defvalidator</code></p>
+<p>forms can be a single validator set or a sequence of key/value pairs where:</p>
+
+<p>key   ==> :keyword or [:a :path]</p>
+
+<p>value ==> validation-function or
+        validator-set or
+       [[validation-function args+opts]] or
+       [validation-function another-validation-function] or
+       [validation-function [another-validation-function args+opts]]</p>
+
+<p>e.g.:</p>
+
+<p>  (core/validate a-map
+           :name v/required
+           :age  [v/required
+                 [v/number :message "age must be a number"]]
+           [:passport :number] v/positive)</p>
+
+<p>Returns a vector where the first element is the map of validation errors if
+any and the second is the original map (possibly) augmented with the errors
+map.</p>
+
+<p>See also <code>defvalidator</code></p></li>
+</ul>
 </td><td class="codes"><pre class="brush: clojure">(defn validate
-  [m &amp; forms]
-  (validate* m (build-steps forms)))</pre></td></tr><tr><td class="docs"><p>Takes a map and one or more validation functions with semantics provided by "validate". Returns true if the map passes all validations. False otherwise.</p>
+  [&amp; args]
+  (let [[message-fn args] (if (fn? (first args))
+                                   [(first args) (next args)]
+                                   [with-default-messages args])
+        [m forms] [(first args) (next args)]]
+    (validate* message-fn m (build-steps forms))))</pre></td></tr><tr><td class="docs"><p>Takes a map and one or more validation functions with semantics provided by "validate". Returns true if the map passes all validations. False otherwise.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn valid?
   [&amp; args]
   (empty? (first (apply validate args))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#bouncer.validators" name="bouncer.validators"><h1 class="project-name">bouncer.validators</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>This namespace contains all built-in validators as well as
           macros for defining new validators and validator sets</p>
 </td><td class="codes"><pre class="brush: clojure">(ns bouncer.validators
-  {:author &quot;Leonardo Borges&quot;}
-  (:require [clojure.walk :as w]))</pre></td></tr><tr><td class="docs"><h2>Customization support</h2>
+  {:author &quot;Leonardo Borges&quot;})</pre></td></tr><tr><td class="docs"><h2>Customization support</h2>
 
 <p>The following functions and macros support creating custom validators</p>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Defines a new validating function using args &amp; body semantics as provided by "defn".
@@ -3201,56 +3229,47 @@ it's pretty comprehensive.</p>
 
 <p>  opts-map is a map of key-value pairs and may be one of:</p>
 
-<p>  <code>:default-message-format</code> used when the client of this validator doesn't provide a message</p>
+<ul>
+<li><p><code>:default-message-format</code> used when the client of this validator doesn't
+provide a message (consider using custom message functions)</p></li>
+<li><p><code>:optional</code> whether the validation should be run only if the given key has
+a non-nil value in the map. Defaults to false.</p>
 
-<p>  <code>:optional</code> whether the validation should be run only if the given key has a non-nil value in the map. Defaults to false.</p>
+<p>or any other key-value pair which will be available in the validation result
+under the <code>:metadata</code> key.</p>
 
-<p>  The function will be called with the value being validated as its first argument.</p>
+<p>The function will be called with the value being validated as its first argument.</p>
 
-<p>  Any extra arguments will be passed along to the function in the order they were used in the
-  "validate" call.</p>
+<p>Any extra arguments will be passed along to the function in the order they were used in the
+"validate" call.</p>
 
-<p>  e.g.:</p>
+<p>e.g.:</p>
 
-<pre><code>(defvalidator member
+<p>(defvalidator member
   [value coll]
-  (some #{value} coll))
+  (some #{value} coll))</p>
 
-(validate {:age 10}
-  :age [[member (range 5)]])
-</code></pre>
+<p>(validate {:age 10}
+  :age [[member (range 5)]])</p>
 
-<p>  This means the validator <code>member</code> will be called with the arguments <code>10</code> and <code>(0 1 2 3 4)</code>, 
-  in that order.</p>
+<p>This means the validator <code>member</code> will be called with the arguments <code>10</code> and <code>(0 1 2 3 4)</code>,
+in that order.</p></li>
+</ul>
 </td><td class="codes"><pre class="brush: clojure">(defmacro defvalidator
   {:arglists '([name docstring? opts-map? [args*] &amp; body])}
   [name &amp; options]
-  (let [docstring (if (string? (first options))
-                    (first options)
-                    nil)
-        options (if (string? (first options))
-                  (next options)
-                  options)
-        {
-         :keys [default-message-format optional]
-         :or {
-              default-message-format &quot;Custom validation failed for %s&quot;
-              optional false}
-         } (if (map? (first options))
-             (first options)
-             {})
-        options (if (map? (first options))
-                  (next options)
-                  options)
-        [args &amp; body] options
-        fn-meta {:default-message-format default-message-format
-                 :optional optional}]
+  (let [[docstring options] (if (string? (first options))
+                                 [(first options) (next options)]
+                                 [nil options])
+        [fn-meta [args &amp; body]] (if (map? (first options))
+                                  [(first options) (next options)]
+                                  [nil options])
+        fn-meta (assoc fn-meta
+                       :validator (keyword (str *ns*) (str name)))]
     (let [arglists ''([name])]
-      `(do (def ~name
-             (with-meta (fn ~name 
-                          ([~@args]
-                             ~@body))
-               (merge ~fn-meta)))
+      `(do (def ~name (with-meta (fn ~name
+                                   ([~@args]
+                                    ~@body)) ~fn-meta))
            (alter-meta! (var ~name) assoc
                         :doc ~docstring
                         :arglists '([~@args]))))))</pre></td></tr><tr><td class="docs"><h2>Built-in validators</h2>
