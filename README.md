@@ -12,8 +12,8 @@ A validation DSL for Clojure apps
     * [Validating nested maps](#validating-nested-maps)
     * [Multiple validation errors](#multiple-validation-errors)
     * [Validating collections](#validating-collections)
-    * [Validation threading](#validation-threading)    
-    * [Pre-conditions](#pre-conditions)    
+    * [Validation threading](#validation-threading)
+    * [Pre-conditions](#pre-conditions)
 * [Validator sets](#validator-sets)
 * [Customization support](#customization-support)
     * [Custom validators using arbitrary functions](#custom-validations-using-arbitrary-functions)
@@ -87,7 +87,7 @@ Below is an example where we're validating that a given map has a value for both
     :name v/required
     :age  v/required)
 
-;; [{:age ("age must be present")} 
+;; [{:age ("age must be present")}
 ;;  {:name "Leo", :bouncer.core/errors {:age ("age must be present")}}]
 ```
 
@@ -99,11 +99,11 @@ Error messages can be customized by providing a `:message` option - e.g: in case
 (b/validate person
     :age [[v/required :message "Idade é um atributo obrigatório"]])
 
-;; [{:age ("Idade é um atributo obrigatório")} 
+;; [{:age ("Idade é um atributo obrigatório")}
 ;;  {:name "Leo", :bouncer.core/errors {:age ("Idade é um atributo obrigatório")}}]
 ```
 
-Note the double vector: 
+Note the double vector:
 
 - the inner one wraps a single validation where the first element is the validating function and the rest are options for that validation.
 - the outer vector simply denotes a list of validations to be applied
@@ -126,15 +126,15 @@ Nested maps can easily be validated as well, using the built-in validators:
     [:address :phone]    [[v/matches #"^\d+$"]])
 
 
-;;[{:address 
-;;              {:phone ("phone must match the given regex pattern"), 
-;;               :postcode ("postcode must be a number"), 
-;;               :street ("street must be present")}} 
+;;[{:address
+;;              {:phone ("phone must match the given regex pattern"),
+;;               :postcode ("postcode must be a number"),
+;;               :street ("street must be present")}}
 ;;   {:bouncer.core/errors {:address {
-;;                          :phone ("phone must match the given regex pattern"), 
-;;                          :postcode ("postcode must be a number"), 
-;;                          :street ("street must be present")}}, 
-;;                          :address {:country "Brazil", :postcode "invalid", :street nil, 
+;;                          :phone ("phone must match the given regex pattern"),
+;;                          :postcode ("postcode must be a number"),
+;;                          :street ("street must be present")}},
+;;                          :address {:country "Brazil", :postcode "invalid", :street nil,
 ;;                          :phone "foobar"}}]
 ```
 
@@ -150,7 +150,7 @@ For instance, say you're validating a map representing a person and you expect t
 ```clojure
 (b/validate {:age nil}
     :age [v/required v/number v/positive])
-    
+
 ;; [{:age ("age must be present")} {:bouncer.core/errors {:age ("age must be present")}, :age nil}]
 ```
 
@@ -184,8 +184,8 @@ Let's see it in action:
 (b/validate person-with-pets
           :pets [[v/every #(not (nil? (:name %)))]])
 
-;;[{:pets ("All items in pets must satisfy the predicate")} 
-;; {:name "Leo", :pets [{:name nil} {:name "Gandalf"}], 
+;;[{:pets ("All items in pets must satisfy the predicate")}
+;; {:name "Leo", :pets [{:name nil} {:name "Gandalf"}],
 ;; :bouncer.core/errors {:pets ("All items in pets must satisfy the predicate")}}]
 ```
 
@@ -202,7 +202,7 @@ Note that if a map is threaded through multiple validators, bouncer will leave i
     (b/validate :age v/number)
     second
     ::b/errors)
-    
+
 ;; {:age ("age must be a number"), :name ("name must be present")}
 ```
 
@@ -215,7 +215,7 @@ Consider the following:
 ```clojure
 (b/valid? {:a -1 :b "X"}
            :b [[v/member #{"Y" "Z"} :pre (comp pos? :a)]])
-             
+
 ;; true
 ```
 
@@ -226,7 +226,7 @@ Let's now make it fail:
 ```clojure
 (b/valid? {:a 1 :b "X"}
            :b [[v/member #{"Y" "Z"} :pre (comp pos? :a)]])
-             
+
 ;; false
 ```
 
@@ -254,13 +254,13 @@ If you find yourself repeating a set of validators over and over, chances are yo
             :name    v/required
             :address address-validations)
 
-;;[{:address 
-;;    {:postcode ("postcode must be a number" "postcode must be present"), 
-;;     :street ("street must be present")}, 
-;;     :name ("name must be present")} 
-;; 
-;; {:bouncer.core/errors {:address {:postcode ("postcode must be a number" "postcode must be present"), 
-;;  :street ("street must be present")}, :name ("name must be present")}, 
+;;[{:address
+;;    {:postcode ("postcode must be a number" "postcode must be present"),
+;;     :street ("street must be present")},
+;;     :name ("name must be present")}
+;;
+;; {:bouncer.core/errors {:address {:postcode ("postcode must be a number" "postcode must be present"),
+;;  :street ("street must be present")}, :name ("name must be present")},
 ;;  :address {:country "Brazil", :postcode ""}}]
 ```
 
@@ -275,10 +275,10 @@ You can also compose validator sets together and use them as top level validatio
   {:name v/required
    :age [v/required v/number]
    :address address-validator})
-  
+
 (b/validate {}
 			person-validator)
-			   
+
 ;;[{:address {:postcode ("postcode must be present")}, :age ("age must be present"), :name ("name must be present")} {:bouncer.core/errors {:address {:postcode ("postcode must be present")}, :age ("age must be present"), :name ("name must be present")}}]
 ```
 
@@ -295,7 +295,7 @@ Using your own functions as validators is simple:
 (b/validate {:age 29}
             :age [[young? :message "Too old!"]])
 
-;; [{:age ("Too old!")} 
+;; [{:age ("Too old!")}
 ;;  {:bouncer.core/errors {:age ("Too old!")}, :age 29}]
 ```
 
@@ -306,8 +306,8 @@ As shown above, validators as just functions. The downside is that by using a fu
 ```clojure
 (b/validate {:age 29}
                :age young?)
-               
-;; [{:age ("Custom validation failed for age")} 
+
+;; [{:age ("Custom validation failed for age")}
 ;; {:bouncer.core/errors {:age ("Custom validation failed for age")}, :age 29}]
 ```
 
@@ -352,7 +352,7 @@ Using it is then straightforward:
           :postcode my-number-validator)
 
 
-;; [{:postcode ("postcode must be a number")} 
+;; [{:postcode ("postcode must be a number")}
 ;;  {:bouncer.core/errors {:postcode ("postcode must be a number")}, :postcode "NaN"}]
 ```
 
@@ -411,6 +411,18 @@ Pull requests of bug fixes and new validators are most welcome.
 Note that if you wish your validator to be merged and considered *built-in* you must implement it using the macro `defvalidator` shown above.
 
 Feedback to both this library and this guide is welcome.
+
+### Running the tests
+
+Bouncer is assumed to work with Clojure 1.3 and up.
+
+There is a leiningen alias that makes it easy to run the tests against multiple Clojure versions:
+
+```bash
+λ lein all-tests
+```
+
+It'll run all tests against Clojure 1.3, 1.4 and 1.5 - make sure all tests pass before submitting a pull request.
 
 ## TODO
 
