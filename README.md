@@ -24,7 +24,7 @@ A validation DSL for Clojure apps
 * [Contributing](#contributing)
 * [TODO](#todo)
 * [CHANGELOG](https://github.com/leonardoborges/bouncer/blob/master/CHANGELOG.md)
-* [CONTRIBUTORS](#contributors)
+* [CONTRIBUTORS](https://github.com/leonardoborges/bouncer/graphs/contributors)
 * [License](#license)
 
 ## Motivation
@@ -527,12 +527,6 @@ It'll run all tests against Clojure 1.3, 1.4 and 1.5 - make sure all tests pass 
 
 - Add more validators (help is appreciated here)
 - Docs are getting a bit messy. Fix that.
-
-## CONTRIBUTORS
-
-- [@leonardoborges](https://github.com/leonardoborges)
-- [@ghoseb](https://github.com/ghoseb)
-- [@dm3](https://github.com/dm3)
 
 ## License
 
