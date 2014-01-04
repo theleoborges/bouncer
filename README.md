@@ -19,7 +19,7 @@ A validation DSL for Clojure apps
     * [Custom validators using arbitrary functions](#custom-validations-using-arbitrary-functions)
     * [Writing validators](#writing-validators)
         * [Validators and arbitrary number of arguments](#validators-and-arbitrary-number-of-arguments)
-	* [Internationalization and advanced error messages] (#internationalization-and-advanced-error-messages)        
+	* [Internationalization and customised error messages] (#internationalization-and-customised-error-messages)        
 * [Built-in validators](#built-in-validations)
 * [Contributing](#contributing)
 * [TODO](#todo)
@@ -393,7 +393,7 @@ Yup, it's that *simple*. Let's use it:
 
 In the example above, the validator will be called with `10` - that's the value the key `:age` holds - and `(0 1 2 3 4)` - which is the result of `(range 5)` and will be fed as the second argument to the validator.
 
-### Internationalization and advanced error messages
+### Internationalization and customised error messages
 
 In some cases the default behaviour might not be enough. 
 
