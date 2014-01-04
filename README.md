@@ -403,7 +403,7 @@ Or maybe you need access to the options that were given to a specific validator.
 
 And what if you need to know which validator generated a specific error message?
 
-Since *0.3.1-alpha1*, this is possible. `validate` takes as an optional first argument a function - called a *message-fn* - that is applied to a map containing validation metadata that allows you to customise error messages in any way you like - or even return other data structures instead.
+Since *0.3.1-beta1*, this is possible. `validate` takes as an optional first argument a function - called a *message-fn* - that is applied to a map containing validation metadata that allows you to customise error messages in any way you like - or even return other data structures instead.
 
 This map has the following keys:
 
