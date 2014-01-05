@@ -36,7 +36,7 @@ Check [this blog post](http://www.leonardoborges.com/writings/2013/01/04/bouncer
 If you're using leiningen, add it as a dependency to your project:
 
 ```clojure
-[bouncer "0.3.0"]
+[bouncer "0.3.1-beta1"]
 ```
 
 Or if you're using maven:
@@ -45,16 +45,9 @@ Or if you're using maven:
 <dependency>
   <groupId>bouncer</groupId>
   <artifactId>bouncer</artifactId>
-  <version>0.3.0</version>
+  <version>0.3.1-beta1</version>
 </dependency>
 ```
-
-Or to use the current development release:
-
-```clojure
-[bouncer "0.3.1-beta1"]
-```
-
 
 Then, require the library:
 
