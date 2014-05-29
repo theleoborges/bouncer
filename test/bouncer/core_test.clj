@@ -3,7 +3,8 @@
   (:use clojure.test [bouncer.validators :only [defvalidator]])
   (:require [bouncer
              [core :as core]
-             [validators :as v]]))
+             [validators :as v]
+             [utils :refer [bouncify]]]))
 
 (deftest validations
   (testing "Required validations"
@@ -32,24 +33,23 @@
 
   (testing "Custom validations"
     (is (not (core/valid? {}
-                          :name (complement nil?))))
+                          :name (fn [v _] ((complement nil?) v)))))
     (is (core/valid? {:name "Leo"}
-                     :name (complement nil?)))
+                     :name (fn [v _] ((complement nil?) v))))
 
-    (letfn [(not-nil [v] ((complement nil?) v))]
+    (letfn [(not-nil [v _] ((complement nil?) v))]
       (is (not (core/valid? {}
                             :name not-nil)))
       (is (core/valid? {:name "Leo"}
                        :name not-nil)))))
 
-
 (deftest standard-functions
   (testing "it can use plain clojure functions as validators"
     (are [valid? subject    validations] (= valid? (core/valid? subject validations))
-         false   {:age 0}   {:age [[pos? :message "positive"]]}
-         true    {:age  10} {:age [[pos? :message "positive"]]}
-         false   {:age 0}   {:age pos?}
-         true    {:age  10} {:age pos?})))
+         false   {:age 0}   {:age [[(bouncify pos?) :message "positive"]]}
+         true    {:age  10} {:age [[(bouncify pos?) :message "positive"]]}
+         false   {:age 0}   {:age (bouncify pos?)}
+         true    {:age  10} {:age (bouncify pos?)})))
 
 (def map-no-street {:address {:street nil :country "Brazil"}})
 (def map-with-street (assoc-in map-no-street [:address :street]
@@ -101,7 +101,7 @@
                     :name v/required
                     :year v/number
                     :age v/positive
-                    :dob (complement nil?))))))
+                    :dob (bouncify (complement nil?)))))))
 
   (testing "custom messages"
     (is (= {
@@ -114,7 +114,7 @@
                     :name [[v/required :message "Nome eh obrigatorio"]]
                     :year [[v/required :message "Ano eh obrigatorio"]]
                     :age [[v/positive :message "Idade deve ser maior que zero"]]
-                    :dob [[(complement nil?) :message "Nao pode ser nulo"]]))))))
+                    :dob [[(bouncify (complement nil?)) :message "Nao pode ser nulo"]]))))))
 
 (deftest validation-result
   (testing "invalid results"
@@ -170,17 +170,17 @@
 
 (defvalidator directory
   {:default-message-format "%s must be a valid directory" :optional false}
-  [path]
+  [path _]
   (.isDirectory ^File (clojure.java.io/file path)))
 
 (defvalidator readable
   {:default-message-format "%s is not readable" :optional false}
-  [path]
+  [path _]
   (.canRead ^File (clojure.java.io/file path)))
 
 (defvalidator writeable
   {:default-message-format "%s is not writeable" :optional false}
-  [path]
+  [path _]
   (.canRead ^File (clojure.java.io/file path)))
 
 (deftest early-exit
@@ -258,7 +258,7 @@
                                    invalid-map
                                    :name v/required
                                    :age v/required
-                                   :mobile [[string? :message "wrong format"]]
+                                   :mobile [[(bouncify string?) :message "wrong format"]]
                                    :car [[v/member ["Ferrari" "Mustang" "Mini"]]]
                                    :dob v/number
                                    [:passport :number] v/positive

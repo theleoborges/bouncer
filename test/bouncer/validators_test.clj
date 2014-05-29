@@ -2,7 +2,8 @@
   (:use clojure.test)
   (:require [bouncer
              [core :as core]
-             [validators :as v]]))
+             [validators :as v]
+             [utils :refer [bouncify]]]))
 
 (def addr-validator-set
   {:postcode [v/required v/number]
@@ -83,7 +84,7 @@
       (is (= errors-map
              (first (default-validate invalid-map
                                    :name v/required
-                                   :age [[(complement empty?) :message "required"]]
+                                   :age [[(bouncify (complement empty?)) :message "required"]]
                                    [:passport :number] v/positive
                                    :address addr-validator-set))))))
 

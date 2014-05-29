@@ -84,11 +84,11 @@ If you'd like to know more about the motivation behind `bouncer`, check the
 (defn- wrap
   "Wraps pred in the context of validating a single value
 
-  - `acc`  is the map being validated
+  - `subject`  is the map being validated
 
   - `pred` is a validator
 
-  - `k`    the path to the value to be validated in the associative structure `acc`
+  - `k`    the path to the value to be validated in the associative structure `subject`
 
   - `args` any extra args to pred
 
@@ -98,9 +98,9 @@ If you'd like to know more about the motivation behind `bouncer`, check the
   - the validator is optional  *and* there is a non-nil value to be validated (this information is read from pred's metadata) or;
   - there are no previous errors for the given path
 
-  Returns `acc` augmented with a namespace qualified ::errors keyword
+  Returns `subject` augmented with a namespace qualified ::errors keyword
 "
-  [message-fn acc [pred k & args]]
+  [message-fn subject [pred k & args]]
   (let [k (if (vector? k) k [k])
         error-path (cons ::errors k)
 
@@ -115,18 +115,18 @@ If you'd like to know more about the motivation behind `bouncer`, check the
 
         [args opts] (split-with (complement keyword?) args)
         {:keys [message pre]} (apply hash-map opts)
-        pred-subject (get-in acc k)]
-    (if (pre-condition-met? pre acc)
-      (if (or (and optional (nil? pred-subject))
-              (not (empty? (get-in acc error-path)))
-              (apply pred pred-subject args))
-        acc
-        (update-in acc error-path
-                   #(conj % (message-fn {:path k, :value pred-subject
+        subject-value (get-in subject k)]
+    (if (pre-condition-met? pre subject)
+      (if (or (and optional (nil? subject-value))
+              (not (empty? (get-in subject error-path)))
+              (apply pred subject-value (concat args [subject])))
+        subject
+        (update-in subject error-path
+                   #(conj % (message-fn {:path k, :value subject-value
                                          :args (seq args)
                                          :metadata meta-with-defaults
                                          :message message}))))
-      acc)))
+      subject)))
 
 
 (defn- wrap-chain

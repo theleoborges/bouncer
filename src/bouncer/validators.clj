@@ -69,7 +69,7 @@
   For use with validation functions such as `validate` or `valid?`
 "
   {:default-message-format "%s must be present"}
-  [value]
+  [value subject]
   (if (string? value)
     (not (empty? value))
     (not (nil? value))))
@@ -79,7 +79,7 @@
 
   For use with validation functions such as `validate` or `valid?`"
   {:default-message-format "%s must be a number" :optional true}
-  [maybe-a-number]
+  [maybe-a-number subject]
   (number? maybe-a-number))
 
 
@@ -88,7 +88,7 @@
 
   For use with validation functions such as `validate` or `valid?`"
   {:default-message-format "%s must be a positive number" :optional true}
-  [number]
+  [number subject]
   (> number 0))
 
 
@@ -97,14 +97,14 @@
 
   For use with validation functions such as `validate` or `valid?`"
   {:default-message-format "%s must be one of the values in the list"}
-  [value coll]
+  [value coll subject]
   (some #{value} coll))
 
 (defvalidator custom
   "Validates pred is true for the given value.
 
   For use with validation functions such as `validate` or `valid?`"
-  [value pred]
+  [value pred subject]
   (println "Warning: bouncer.validators/custom is deprecated and will be removed. Use plain functions instead.")
   (pred value))
 
@@ -113,7 +113,7 @@
 
   For use with validation functions such as `validate` or `valid?`"
   {:default-message-format "All items in %s must satisfy the predicate"}
-  [coll pred]
+  [coll pred subject]
   (every? pred coll))
 
 (defvalidator matches
@@ -121,7 +121,7 @@
 
    For use with validation functions such as `validate` or `valid?`"
   {:default-message-format "%s must satisfy the given pattern" :optional true}
-  [value re]
+  [value re subject]
   ((complement empty?) (re-seq re value)))
 
 (defvalidator email
@@ -132,5 +132,5 @@
 
   For use with validation functions such as `validate` or `valid?`"
   {:default-message-format "%s must be a valid email address"}
-  [value]
-  (and (required value) (matches value #"^[^@]+@[^@\\.]+[\\.].+")))
+  [value subject]
+  (and (required value subject) (matches value #"^[^@]+@[^@\\.]+[\\.].+" subject)))
