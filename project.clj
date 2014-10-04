@@ -4,7 +4,8 @@
   :license {:name "MIT License"
             :url "http://opensource.org/licenses/MIT"}
   :dependencies [[org.clojure/clojure "1.6.0-RC1"]
-                 [org.clojure/algo.monads "0.1.0"]]
+                 [org.clojure/algo.monads "0.1.0"]
+                 [clj-time "0.8.0"]]
   :plugins [[lein-marginalia "0.7.1"]]
   :profiles {:1.4 {:dependencies [[org.clojure/clojure "1.4.0"]]}
              :1.5 {:dependencies [[org.clojure/clojure "1.5.1"]]}
