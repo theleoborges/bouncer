@@ -2,7 +2,8 @@
   (:use clojure.test)
   (:require [bouncer
              [core :as core]
-             [validators :as v]]))
+             [validators :as v]]
+            [clj-time.format :as f]))
 
 (def addr-validator-set
   {:postcode [v/required v/number]
@@ -153,3 +154,18 @@
     (is (not (core/valid? {:email "test@"} :email [[v/email]])))
     (is (not (core/valid? {:email "test@googlexyz"} :email [[v/email]])))
     (is (not (core/valid? {:email "@google.xyz.com"} :email [[v/email]])))))
+
+(def y-m (f/formatters :year-month))
+
+(deftest datetime-validator
+  (testing "matched without custom formatter"
+    (is (core/valid? {:dt "2014-04-02"} :dt [[v/datetime]]))
+    (is (core/valid? {:dt "2014-04-02 03:03:03"} :dt [[v/datetime]])))
+  (testing "rejected without custom formatter"
+    (is (not (core/valid? {:dt "2014/04/01"} :dt [[v/datetime]]))))
+  (testing "matched with custom formatter"
+    (is (core/valid? {:dt "2014/04/01"} :dt [[v/datetime "yyyy/MM/dd"]])))
+  (testing "valid date rejected because of specific clj-time formatter"
+    (is (not (core/valid? {:dt "2014-01-02"} :dt [[v/datetime y-m]]))))
+  (testing "matched by specific clj-time formatter"
+    (is (core/valid? {:dt "2014-01"} :dt [[v/datetime y-m]]))))

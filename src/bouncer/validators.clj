@@ -1,7 +1,8 @@
 (ns bouncer.validators
   "This namespace contains all built-in validators as well as
           macros for defining new validators and validator sets"
-  {:author "Leonardo Borges"})
+  {:author "Leonardo Borges"}
+  (:require [clj-time.format :as f]))
 
 ;; ## Customization support
 ;;
@@ -134,3 +135,17 @@
   {:default-message-format "%s must be a valid email address"}
   [value]
   (and (required value) (matches value #"^[^@]+@[^@\\.]+[\\.].+")))
+
+(defvalidator datetime
+  "Validates value is a date(time). 
+
+  Optionally, takes a formatter argument which may be either an existing clj-time formatter, or a string representing a custom datetime formatter.
+
+  For use with validation functions such as `validate` or `valid?`"
+  {:default-message-format "%s must be a valid date"}
+  [value & [opt & _]]
+  (let [formatter (if (string? opt) (f/formatter opt) opt)]
+    (try
+      (if formatter (f/parse formatter value) (f/parse value))
+      (catch IllegalArgumentException e false))))
+
