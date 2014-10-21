@@ -1,4 +1,4 @@
-(defproject bouncer "0.3.1"
+(defproject bouncer "0.3.2-SNAPSHOT"
   :description "A validation DSL for Clojure apps"
   :url "http://github.com/leonardoborges/bouncer"
   :license {:name "MIT License"
