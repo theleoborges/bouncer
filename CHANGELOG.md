@@ -1,4 +1,4 @@
-## 0.3.1-beta1 (NOT RELEASED)
+## 0.3.1 (21/10/2014)
 
 - Merge [PR #14](https://github.com/leonardoborges/bouncer/pull/14): "Validation results as error metadata"
 
