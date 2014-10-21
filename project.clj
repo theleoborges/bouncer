@@ -8,5 +8,5 @@
   :plugins [[lein-marginalia "0.7.1"]]
   :profiles {:1.4 {:dependencies [[org.clojure/clojure "1.4.0"]]}
              :1.5 {:dependencies [[org.clojure/clojure "1.5.1"]]}
-             :1.6 {:dependencies [[org.clojure/clojure "1.6.0-RC1"]]}}
+             :1.6 {:dependencies [[org.clojure/clojure "1.6.0"]]}}
   :aliases {"all-tests" ["with-profile" "1.4:1.5:1.6" "test"]})
