@@ -21,8 +21,8 @@
   {:postcode v/required})
 
 (def person-validator
-  {:name v/required
-   :age [v/required v/number]
+  {:name [v/required v/string]
+   :age [v/required v/number v/integer]
    :address address-validator})
 
 (def deep-validator
@@ -126,12 +126,34 @@
     (is (core/valid? {:field1 :a}
                           items-validator-set))))
 
-
+(deftest boolean-validator
+  (testing "value must be a boolean "
+    (is (core/valid? {:active true} 
+                     :active v/boolean))
+    (is (core/valid? {:active false} 
+                     :active v/boolean))
+    (is (not (core/valid? {:active "false"} 
+                          :active v/boolean)))
+    (is (not (core/valid? {:active 0} 
+                          :active v/boolean)))))
 
 (deftest range-validator
   (testing "presence of value in the given range"
+    (is (core/valid? {:age 4} 
+                     :age [[v/in-range [0 5]]]))
+    (is (not (core/valid? {:age 10}
+                          :age [[v/in-range [0 9]]])))
+    (is (core/valid? {:rating 3.7} 
+                     :rating [[v/in-range [0 4]]]))
+    (is (core/valid? {:rating 10.0}
+                     :rating [[v/in-range [0 10]]]))
+    (is (not (core/valid? {:rating 10.1}
+                     :rating [[v/in-range [0 10]]])))))
+
+(deftest member-validator
+  (testing "presence of value in a collection"
     (is (core/valid? {:age 4}
-                  :age [[v/member (range 5)]]))
+                     :age [[v/member (range 5)]]))
     (is (not (core/valid? {:age 5}
                           :age [[v/member (range 5)]])))))
 
