@@ -13,8 +13,7 @@ it's pretty comprehensive.
 
 If you'd like to know more about the motivation behind `bouncer`, check the
 [announcement post](http://www.leonardoborges.com/writings/2013/01/04/bouncer-validation-lib-for-clojure/)."
-  {:author "Leonardo Borges"}
-  (:require [clojure.algo.monads :as m]))
+  {:author "Leonardo Borges"})
 
 
 
@@ -152,19 +151,13 @@ If you'd like to know more about the motivation behind `bouncer`, check the
 
   Validates the map m using the validation functions fs.
 
-  Returns a vector where the first element is the map of validation errors if any and the second is the original map (possibly)augmented with the errors map."
+  Returns a vector where the first element is the map of validation errors if any and the second is the original map (possibly) augmented with the errors map."
   [message-fn m fs]
-  (letfn [(m-fn [fs]
-            (m/with-monad m/state-m
-              (cond
-                (> (count fs) 1) (m-bind
-                                   (bouncer.core/wrap-chain message-fn (first fs))
-                                   (fn [_]
-                                     (m-fn (rest fs))))
-                :else (m-bind (bouncer.core/wrap-chain message-fn (first fs))
-                              (fn [result]
-                                (m-result result))))))]
-    ((m-fn fs) m)))
+  (loop [[errors state :as ret] [nil m]
+         fs fs]
+    (if (seq fs)
+      (recur ((wrap-chain message-fn (first fs)) state) (rest fs))
+      ret)))
 
 ;; ## Public API
 
