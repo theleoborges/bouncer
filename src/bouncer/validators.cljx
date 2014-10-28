@@ -2,7 +2,8 @@
   "This namespace contains all built-in validators as well as
           macros for defining new validators and validator sets"
   {:author "Leonardo Borges"}
-  (:require [clj-time.format :as f]))
+  #+clj (:require [clj-time.format :as f])
+  #+cljs (:require [cljs-time.format :as f]))
 
 ;; ## Customization support
 ;;
