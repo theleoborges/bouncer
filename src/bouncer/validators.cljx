@@ -3,7 +3,8 @@
           macros for defining new validators and validator sets"
   {:author "Leonardo Borges"}
   #+clj (:require [clj-time.format :as f])
-  #+cljs (:require [cljs-time.format :as f]))
+  #+cljs (:require [cljs-time.format :as f])
+  #+cljs (:require-macros [bouncer.validators :refer [defvalidator]]))
 
 ;; ## Customization support
 ;;
@@ -56,10 +57,7 @@
     (let [arglists ''([name])]
       `(do (def ~name (with-meta (fn ~name
                                    ([~@args]
-                                    ~@body)) ~fn-meta))
-           (alter-meta! (var ~name) assoc
-                        :doc ~docstring
-                        :arglists '([~@args]))))))
+                                    ~@body)) ~fn-meta))))))
 
 ;; ## Built-in validators
 
@@ -148,5 +146,6 @@
   (let [formatter (if (string? opt) (f/formatter opt) opt)]
     (try
       (if formatter (f/parse formatter value) (f/parse value))
-      (catch IllegalArgumentException e false))))
+      #+clj (catch IllegalArgumentException e false)
+      #+cljs (catch js/Error e false))))
 

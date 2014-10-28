@@ -13,7 +13,9 @@ it's pretty comprehensive.
 
 If you'd like to know more about the motivation behind `bouncer`, check the
 [announcement post](http://www.leonardoborges.com/writings/2013/01/04/bouncer-validation-lib-for-clojure/)."
-  {:author "Leonardo Borges"})
+  {:author "Leonardo Borges"}
+  #+cljs (:require [goog.string :as gstring]
+                   [goog.string.format]))
 
 
 
@@ -169,8 +171,10 @@ If you'd like to know more about the motivation behind `bouncer`, check the
                      :name v/required)"
   [error]
   (let [{:keys [message path metadata]} error]
-    (format (or message (:default-message-format metadata))
-            (name (peek path)))))
+    #+clj (format (or message (:default-message-format metadata))
+                  (name (peek path)))
+    #+cljs (gstring/format (or message (:default-message-format metadata))
+                           (name (peek path)))))
 
 (defn validate
   "Takes a
