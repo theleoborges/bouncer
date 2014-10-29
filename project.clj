@@ -5,7 +5,8 @@
             :url "http://opensource.org/licenses/MIT"}
   :jar-exclusions [#"\.cljx"]
   :dependencies [[org.clojure/clojure "1.6.0-RC1"]
-                 [clj-time "0.8.0"]]
+                 [clj-time "0.8.0"]
+                 [com.andrewmcveigh/cljs-time "0.2.3"]]
   :plugins [[lein-marginalia "0.7.1"]
             [com.keminglabs/cljx "0.4.0"]]
   :cljx {:builds [{:source-paths ["src"]
@@ -24,8 +25,7 @@
   :profiles {:1.4 {:dependencies [[org.clojure/clojure "1.4.0"]]}
              :1.5 {:dependencies [[org.clojure/clojure "1.5.1"]]}
              :1.6 {:dependencies [[org.clojure/clojure "1.6.0"]]}
-             :cljs {:dependencies [[org.clojure/clojurescript "0.0-2371"]
-                                   [com.andrewmcveigh/cljs-time "0.2.3"]]
+             :cljs {:dependencies [[org.clojure/clojurescript "0.0-2371"]]
                     :plugins [[lein-cljsbuild "1.0.3"]
                               [com.cemerick/clojurescript.test "0.3.1"]]
                     :cljsbuild {:test-commands {"phantom" ["phantomjs" :runner "target/testable.js"]}
