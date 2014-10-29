@@ -1,9 +1,11 @@
 (ns bouncer.core-test
-  (:import java.io.File)
-  (:use clojure.test [bouncer.validators :only [defvalidator]])
-  (:require [bouncer
-             [core :as core]
-             [validators :as v]]))
+  (:require [bouncer.core :as core]
+            #+clj [clojure.test :refer [is deftest testing are]]
+            #+clj [bouncer.validators :as v :refer [defvalidator]]
+            #+cljs [cemerick.cljs.test :as t]
+            #+cljs [bouncer.validators :as v])
+  #+cljs (:require-macros [cemerick.cljs.test :refer [is deftest testing are]]
+                          [bouncer.validators :refer [defvalidator]]))
 
 (deftest validations
   (testing "Required validations"
@@ -168,21 +170,6 @@
                           [:address :past] [[v/every #(not (nil? (:country %)))]])))))
 
 
-(defvalidator directory
-  {:default-message-format "%s must be a valid directory" :optional false}
-  [path]
-  (.isDirectory ^File (clojure.java.io/file path)))
-
-(defvalidator readable
-  {:default-message-format "%s is not readable" :optional false}
-  [path]
-  (.canRead ^File (clojure.java.io/file path)))
-
-(defvalidator writeable
-  {:default-message-format "%s is not writeable" :optional false}
-  [path]
-  (.canRead ^File (clojure.java.io/file path)))
-
 (deftest early-exit
   (testing "short circuit validations for single entry"
     (is (= {:age '("age must be present")}
@@ -199,17 +186,7 @@
 
     (is (= {:age '("age must be a positive number")}
            (first (core/validate {:age -7}
-                    :age [v/required v/number v/positive]))))
-
-    (let [config-params {:input-dir "some/directory/path"
-                         :output-dir "some/other/directory/path"}]
-      (is (= {
-              :output-dir '("output-dir must be a valid directory")
-              :input-dir  '("input-dir must be a valid directory")
-              }
-             (first (core/validate config-params
-                      :input-dir [v/required directory readable]
-                      :output-dir [v/required directory writeable])))))))
+                    :age [v/required v/number v/positive]))))))
 
 
 (defn pred-fn [x]

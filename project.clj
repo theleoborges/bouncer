@@ -30,9 +30,9 @@
                    :cljsbuild {:test-commands {"phantom" ["phantomjs" :runner "target/testable.js"]}
                                :builds [{:source-paths ["target/classes" "target/test-classes"]
                                          :compiler {:output-to "target/testable.js"
-                                                    :libs [""]
                                                     :source-map "target/testable.js.map"
-                                                    :optimizations :advanced}}]}}}
+                                                    :optimizations :advanced
+                                                    :pretty-print false}}]}}}
   :aliases {"all-tests" ["with-profile" "dev:1.4:1.5:1.6" "test"]}
   :source-paths ["src" "target/classes"]
   :test-paths ["target/test-classes"])
