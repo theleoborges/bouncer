@@ -5,6 +5,7 @@
     ```clojure
     (core/valid? {:dt "2014-04-02"} :dt [[v/datetime]])
     ```
+- Merge [PR #27](https://github.com/leonardoborges/bouncer/pull/27): "Cljs support"    
 
 ## 0.3.1 (21/10/2014)
 
