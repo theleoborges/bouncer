@@ -14,7 +14,8 @@ it's pretty comprehensive.
 If you'd like to know more about the motivation behind `bouncer`, check the
 [announcement post](http://www.leonardoborges.com/writings/2013/01/04/bouncer-validation-lib-for-clojure/)."
   {:author "Leonardo Borges"}
-  (:require [clojure.algo.monads :as m]))
+  #+cljs (:require [goog.string :as gstring]
+                   [goog.string.format]))
 
 
 
@@ -134,37 +135,30 @@ If you'd like to know more about the motivation behind `bouncer`, check the
 
   Chain of responsibility.
 
-  Takes a collection of validators `fs` and returns a `state monad`-compatible function.
+  Takes the current state and a collection of validators `fs`
 
-  This function will run all validators against `old-state` and eventually return a vector with the result - the errors map - and the new state - the original map augmented with the errors map.
+  Will run all validators against `old-state` and eventually return a vector with the result - the errors map - and the new state - the original map augmented with the errors map.
 
   See also `wrap`
 "
-  [message-fn & fs]
-  (fn [old-state]
-    (let [new-state (reduce (partial wrap message-fn)
-                            old-state
-                            fs)]
-      [(::errors new-state) new-state])))
+  [old-state message-fn & fs]
+  (let [new-state (reduce (partial wrap message-fn)
+                          old-state
+                          fs)]
+    [(::errors new-state) new-state]))
 
 (defn- validate*
   "Internal use.
 
   Validates the map m using the validation functions fs.
 
-  Returns a vector where the first element is the map of validation errors if any and the second is the original map (possibly)augmented with the errors map."
+  Returns a vector where the first element is the map of validation errors if any and the second is the original map (possibly) augmented with the errors map."
   [message-fn m fs]
-  (letfn [(m-fn [fs]
-            (m/with-monad m/state-m
-              (cond
-                (> (count fs) 1) (m-bind
-                                   (bouncer.core/wrap-chain message-fn (first fs))
-                                   (fn [_]
-                                     (m-fn (rest fs))))
-                :else (m-bind (bouncer.core/wrap-chain message-fn (first fs))
-                              (fn [result]
-                                (m-result result))))))]
-    ((m-fn fs) m)))
+  (loop [[errors state :as ret] [nil m]
+         fs fs]
+    (if (seq fs)
+      (recur (wrap-chain state message-fn (first fs)) (rest fs))
+      ret)))
 
 ;; ## Public API
 
@@ -176,8 +170,10 @@ If you'd like to know more about the motivation behind `bouncer`, check the
                      :name v/required)"
   [error]
   (let [{:keys [message path metadata]} error]
-    (format (or message (:default-message-format metadata))
-            (name (peek path)))))
+    #+clj (format (or message (:default-message-format metadata))
+                  (name (peek path)))
+    #+cljs (gstring/format (or message (:default-message-format metadata))
+                           (name (peek path)))))
 
 (defn validate
   "Takes a

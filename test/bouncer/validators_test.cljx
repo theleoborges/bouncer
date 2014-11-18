@@ -1,21 +1,23 @@
 (ns bouncer.validators-test
-  (:use clojure.test)
-  (:require [bouncer
-             [core :as core]
-             [validators :as v]]
-            [clj-time.format :as f]))
+  (:require [bouncer.core :as core]
+            [bouncer.validators :as v]
+            #+clj [clojure.test :refer [deftest testing is]]
+            #+clj [clj-time.format :as f]
+            #+cljs [cemerick.cljs.test :as t]
+            #+cljs [cljs-time.format :as f])
+  #+cljs (:require-macros [cemerick.cljs.test :refer [is deftest testing]]))
 
 (def addr-validator-set
   {:postcode [v/required v/number]
    :street    v/required
    :country   v/required
-   :past      [[v/every #(not(nil? (:country %)))]]})
+   :past      [[v/every #(not (nil? (:country %)))]]})
 
 (def addr-validator-set+custom-messages
   {:postcode [[v/required :message "required"] [v/number :message "number"]]
    :street    [[v/required :message "required"]]
    :country   [[v/required :message "required"]]
-   :past      [[v/every #(not(nil? (:country %))) :message "every"]]})
+   :past      [[v/every #(not (nil? (:country %))) :message "every"]]})
 
 (def address-validator
   {:postcode v/required})

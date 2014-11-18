@@ -99,6 +99,21 @@ Note the double vector:
 - the inner one wraps a single validation where the first element is the validating function and the rest are options for that validation.
 - the outer vector simply denotes a list of validations to be applied
 
+Below is an example of date-time validation. A [clj-time formatter](https://github.com/clj-time/clj-time#clj-timeformat)
+may optionally be supplied.
+
+```clojure
+(require '[bouncer [core :as b] [validators :as v]] '[clj-time.format :as f])
+
+(def person {:name "Jeb" :last-login "2014-10-21 18:00:00"})
+
+(b/validate person
+    :name v/required
+    :last-login v/datetime (:mysql f/formatters))
+
+;; [nil {:name "Jeb" :last-login "2014-10-21 18:00:00"}]
+```
+
 ### Validating nested maps
 
 Nested maps can easily be validated as well, using the built-in validators:
@@ -485,6 +500,8 @@ I didn't spend a whole lot of time on *bouncer* so it only ships with the valida
 - `bouncer.validators/matches` (for matching regular expressions)
 
 - `bouncer.validators/every` (for ad-hoc validation of collections. All items must match the provided predicate)
+
+- `bouncer.validators/datetime` (uses [clj-time formatters](https://github.com/clj-time/clj-time#clj-timeformat))
 
 ## Contributing
 
