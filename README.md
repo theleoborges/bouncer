@@ -33,10 +33,18 @@ Check [this blog post](http://www.leonardoborges.com/writings/2013/01/04/bouncer
 
 ## Setup
 
-If you're using leiningen, add it as a dependency to your project:
+Stable release:
 
 
 [![[bouncer "0.3.1-beta1"]](https://clojars.org/bouncer/latest-version.svg)](https://clojars.org/bouncer/latest-version.svg)
+
+Development release:
+
+```clojure
+[bouncer "0.3.2-SNAPSHOT"]
+```
+
+Check out the [CHANGELOG](https://github.com/leonardoborges/bouncer/blob/master/CHANGELOG.md) to see what's new.
 
 
 Then, require the library:
