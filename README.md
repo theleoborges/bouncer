@@ -1,6 +1,6 @@
 # bouncer [![Travis CI status](https://api.travis-ci.org/leonardoborges/bouncer.png)](http://travis-ci.org/#!/leonardoborges/bouncer/builds)
 
-A validation DSL for Clojure apps
+A validation DSL for Clojure & Clojurescript applications
 
 ## Table of Contents
 
