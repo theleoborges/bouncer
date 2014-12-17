@@ -171,3 +171,10 @@
     (is (not (core/valid? {:dt "2014-01-02"} :dt [[v/datetime y-m]]))))
   (testing "matched by specific clj-time formatter"
     (is (core/valid? {:dt "2014-01"} :dt [[v/datetime y-m]]))))
+
+(deftest max-length-validator
+  (testing "enforcing a maximum value"
+    (is (core/valid? {:first-name "First Name"} :first-name [[v/max-length 10]]))
+    (is (not (core/valid? {:first-name "First Name"} :first-name [[v/max-length 9]])))
+    (is (not (core/valid? {:not-a-string 25} :not-a-string [[v/max-length 10]])))
+    (is (not (core/valid? {:first-name "First Name"} :first-name [[v/max-length "invalid-max"]])))))

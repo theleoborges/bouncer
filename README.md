@@ -505,6 +505,8 @@ I didn't spend a whole lot of time on *bouncer* so it only ships with the valida
 
 - `bouncer.validators/member`
 
+- `bouncer.validators/max-length`
+
 - `bouncer.validators/matches` (for matching regular expressions)
 
 - `bouncer.validators/every` (for ad-hoc validation of collections. All items must match the provided predicate)

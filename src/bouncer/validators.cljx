@@ -149,3 +149,10 @@
       #+clj (catch IllegalArgumentException e false)
       #+cljs (catch js/Error e false))))
 
+(defvalidator max-length
+  "Validates value is not greater than a max length
+
+  For use with validation functions such as `validate` or `valid?`"
+  {:default-message-format "%s is longer than the maximum"}
+  [value, length]
+  (and (string? value) (integer? length) (<= (count value) length)))
