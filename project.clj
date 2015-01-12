@@ -23,21 +23,26 @@
                                 :builds [{:source-paths ["target/classes" "target/test-classes"]
                                          :compiler {:output-to "target/testable.js"
                                                     :optimizations :whitespace}}]}
-                    :hooks [cljx.hooks
-                            leiningen.cljsbuild]}
-             :dev {:plugins [[com.keminglabs/cljx "0.4.0"]]
-                   :cljx {:builds [{:source-paths ["src"]
-                                    :output-path "target/classes"
-                                    :rules :clj}
-                                   {:source-paths ["src"]
-                                    :output-path "target/classes"
-                                    :rules :cljs}
-                                   {:source-paths ["test"]
-                                    :output-path "target/test-classes"
-                                    :rules :clj}
-                                   {:source-paths ["test"]
-                                    :output-path "target/test-classes"
-                                    :rules :cljs}]}
-                   :hooks [cljx.hooks]}}
+                    :prep-tasks [["clean"]
+                                 ["cljx-once"]
+                                 ["cljsbuild" "once"]]
+                    :hooks [leiningen.cljsbuild]}
+             :cljx {:plugins [[com.keminglabs/cljx "0.4.0"]]
+                    :cljx {:builds [{:source-paths ["src"]
+                                     :output-path "target/classes"
+                                     :rules :clj}
+                                    {:source-paths ["src"]
+                                     :output-path "target/classes"
+                                     :rules :cljs}
+                                    {:source-paths ["test"]
+                                     :output-path "target/test-classes"
+                                     :rules :clj}
+                                    {:source-paths ["test"]
+                                     :output-path "target/test-classes"
+                                     :rules :cljs}]}}
+             :jar {:prep-tasks [["cljx-once"]]}
+             :uberjar {:prep-tasks [["cljx-once"]]}}
 
-  :aliases {"all-tests" ["with-profile" "cljs:1.4:1.5:1.6" "test"]})
+  :aliases {"all-tests" ["with-profile" "cljs:1.4:1.5:1.6" "test"]
+            "cljx-auto" ["with-profile" "cljx" "cljx" "auto"]
+            "cljx-once" ["with-profile" "cljx" "cljx" "once"]})
