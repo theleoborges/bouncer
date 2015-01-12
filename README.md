@@ -19,7 +19,7 @@ A validation DSL for Clojure & Clojurescript applications
     * [Custom validators using arbitrary functions](#custom-validations-using-arbitrary-functions)
     * [Writing validators](#writing-validators)
         * [Validators and arbitrary number of arguments](#validators-and-arbitrary-number-of-arguments)
-	* [Internationalization and customised error messages] (#internationalization-and-customised-error-messages)        
+	* [Internationalization and customised error messages] (#internationalization-and-customised-error-messages)
 * [Built-in validators](#built-in-validations)
 * [Contributing](#contributing)
 * [TODO](#todo)
@@ -50,7 +50,9 @@ Check out the [CHANGELOG](https://github.com/leonardoborges/bouncer/blob/master/
 Then, require the library:
 
 ```clojure
-(require '[bouncer [core :as b] [validators :as v]])
+(ns some.ns
+  (:require [bouncer.core :as b]
+            [bouncer.validators :as v]))
 ```
 
 *bouncer* provides two main validation functions, `validate` and `valid?`
@@ -78,8 +80,6 @@ Below is an example where we're validating that a given map has a value for both
 
 
 ```clojure
-(require '[bouncer [core :as b] [validators :as v]])
-
 (def person {:name "Leo"})
 
 (b/validate person
@@ -111,7 +111,10 @@ Below is an example of date-time validation. A [clj-time formatter](https://gith
 may optionally be supplied.
 
 ```clojure
-(require '[bouncer [core :as b] [validators :as v]] '[clj-time.format :as f])
+(ns some.ns
+  (:require [bouncer.core :as b]
+            [bouncer.validators :as v]
+            [clj-time.format :as f])) ;; cljs-time for clojurescript users
 
 (def person {:name "Jeb" :last-login "2014-10-21 18:00:00"})
 
@@ -401,11 +404,11 @@ In the example above, the validator will be called with `10` - that's the value 
 
 ### Internationalization and customised error messages
 
-In some cases the default behaviour might not be enough. 
+In some cases the default behaviour might not be enough.
 
-Perhaps you'd like to customise your error messages with the value that has been provided. 
+Perhaps you'd like to customise your error messages with the value that has been provided.
 
-Or maybe you need access to the options that were given to a specific validator. 
+Or maybe you need access to the options that were given to a specific validator.
 
 And what if you need to know which validator generated a specific error message?
 
@@ -413,7 +416,7 @@ Since *0.3.1-beta1*, this is possible. `validate` takes as an optional first arg
 
 This map has the following keys:
 
-- :path - where in the map has the error ocurred? 
+- :path - where in the map has the error ocurred?
 - :value - what was the value at the time of the validation?
 - :args - which arguments - if any - were passed to the validator?
 - :metadata - what is the metadata associated with this validation?
@@ -470,7 +473,7 @@ This opens a number of possibilities around customising errors messages. Let's c
 ```clojure
 (defn custom-message-fn [{:keys [path value metadata]}]
   (format "'%s' in field %s should be a %s" value path (:validator metadata)))
-  
+
 (b/validate custom-message-fn
             person
             :name v/required
@@ -521,7 +524,7 @@ Feedback to both this library and this guide is welcome.
 
 ### Running the tests
 
-Bouncer is assumed to work with Clojure 1.3 and up.
+Bouncer is assumed to work with Clojure 1.3 and up, as well as ClojureScript 0.0-2371 and up.
 
 There is a leiningen alias that makes it easy to run the tests against multiple Clojure versions:
 
@@ -529,7 +532,7 @@ There is a leiningen alias that makes it easy to run the tests against multiple 
 λ lein all-tests
 ```
 
-It'll run all tests against Clojure 1.3, 1.4 and 1.5 - make sure all tests pass before submitting a pull request.
+It'll run all tests against Clojure 1.3, 1.4, 1.5 and 1.6, as well as Clojurescript - make sure all tests pass before submitting a pull request.
 
 ## TODO
 
