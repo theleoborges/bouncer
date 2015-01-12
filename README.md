@@ -524,7 +524,7 @@ Feedback to both this library and this guide is welcome.
 
 ### Running the tests
 
-Bouncer is assumed to work with Clojure 1.3 and up, as well as ClojureScript 0.0-2371 and up.
+Bouncer is assumed to work with Clojure 1.4 and up, as well as ClojureScript.
 
 There is a leiningen alias that makes it easy to run the tests against multiple Clojure versions:
 
@@ -532,7 +532,7 @@ There is a leiningen alias that makes it easy to run the tests against multiple 
 λ lein all-tests
 ```
 
-It'll run all tests against Clojure 1.3, 1.4, 1.5 and 1.6, as well as Clojurescript - make sure all tests pass before submitting a pull request.
+It'll run all tests against Clojure 1.4, 1.5 and 1.6, as well as Clojurescript - make sure all tests pass before submitting a pull request.
 
 ## TODO
 
