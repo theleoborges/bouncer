@@ -7,7 +7,6 @@
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [clj-time "0.8.0"]
                  [com.andrewmcveigh/cljs-time "0.2.3"]]
-  :plugins [[lein-marginalia "0.7.1"]]
 
   :jar-exclusions [#"\.cljx"]
   :source-paths ["src" "target/classes"]
