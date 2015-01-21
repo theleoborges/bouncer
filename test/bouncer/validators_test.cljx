@@ -172,9 +172,22 @@
   (testing "matched by specific clj-time formatter"
     (is (core/valid? {:dt "2014-01"} :dt [[v/datetime y-m]]))))
 
-(deftest max-length-validator
-  (testing "enforcing a maximum value"
-    (is (core/valid? {:first-name "First Name"} :first-name [[v/max-length 10]]))
-    (is (not (core/valid? {:first-name "First Name"} :first-name [[v/max-length 9]])))
-    (is (not (core/valid? {:not-a-string 25} :not-a-string [[v/max-length 10]])))
-    (is (not (core/valid? {:first-name "First Name"} :first-name [[v/max-length "invalid-max"]])))))
+(deftest max-count-validator
+  (testing "enforcing a maximum value for count"
+    (testing "with strings"
+    (is (core/valid? {:first-name "First Name"} :first-name [[v/max-count 10]]))
+    (is (not (core/valid? {:first-name "First Name"} :first-name [[v/max-count 9]]))))
+    (testing "with collections"
+    (is (core/valid? {:a-vector [1 2 3]} :a-vector [[v/max-count 3]]))
+    (is (core/valid? {:a-list '(1 2 3)} :a-list [[v/max-count 3]]))
+    (is (not (core/valid? {:a-map {:city "Atlanta" :state "Georgia"}} :a-map [[v/max-count 1]]))))))
+
+(deftest min-count-validator
+  (testing "enforcing a minumum value for count"
+    (testing "with strings"
+    (is (core/valid? {:password "password1"} :password [[v/min-count 8]]))
+    (is (not (core/valid? {:password "open"} :password [[v/min-count 5]]))))
+    (testing "with collections"
+    (is (core/valid? {:a-vector [1 2 3]} :a-vector [[v/min-count 3]]))
+    (is (core/valid? {:a-list '(1 2 3)} :a-list [[v/min-count 3]]))
+    (is (not (core/valid? {:a-map {:city "Atlanta" :state "Georgia"}} :a-map [[v/min-count 3]]))))))

@@ -508,7 +508,9 @@ I didn't spend a whole lot of time on *bouncer* so it only ships with the valida
 
 - `bouncer.validators/member`
 
-- `bouncer.validators/max-length`
+- `bouncer.validators/max-count`
+
+- `bouncer.validators/min-count`
 
 - `bouncer.validators/matches` (for matching regular expressions)
 
