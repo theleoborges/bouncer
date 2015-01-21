@@ -154,7 +154,7 @@
 
   For use with validation functions such as `validate` or `valid?`"
   {:default-message-format "%s is longer than the maximum"}
-  [value, maximum]
+  [value maximum]
   (<= (count (seq value)) maximum))
 
 (defvalidator min-count
@@ -162,5 +162,5 @@
 
   For use with validation functions such as `validate` or `valid?`"
   {:default-message-format "%s is less than the minimum"}
-  [value, minimum]
+  [value minimum]
   (>= (count (seq value)) minimum))
