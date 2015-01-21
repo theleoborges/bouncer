@@ -183,7 +183,7 @@
     (is (not (core/valid? {:a-map {:city "Atlanta" :state "Georgia"}} :a-map [[v/max-count 1]]))))))
 
 (deftest min-count-validator
-  (testing "enforcing a minumum value for count"
+  (testing "enforcing a minimum value for count"
     (testing "with strings"
     (is (core/valid? {:password "password1"} :password [[v/min-count 8]]))
     (is (not (core/valid? {:password "open"} :password [[v/min-count 5]]))))
