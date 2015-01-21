@@ -149,3 +149,18 @@
       #+clj (catch IllegalArgumentException e false)
       #+cljs (catch js/Error e false))))
 
+(defvalidator max-count
+  "Validates value is not greater than a max count
+
+  For use with validation functions such as `validate` or `valid?`"
+  {:default-message-format "%s is longer than the maximum"}
+  [value, maximum]
+  (<= (count (seq value)) maximum))
+
+(defvalidator min-count
+  "Validates value at least meets the minimum count
+
+  For use with validation functions such as `validate` or `valid?`"
+  {:default-message-format "%s is less than the minimum"}
+  [value, minimum]
+  (>= (count (seq value)) minimum))
