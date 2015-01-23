@@ -1,4 +1,8 @@
-## 0.3.2-SNAPSHOT
+## 0.3.2 (23/01/2015)
+
+- Merge [PR #30](https://github.com/leonardoborges/bouncer/pull/30): "Prepare for 0.3.2 final release"
+
+- Merge [PR #29](https://github.com/leonardoborges/bouncer/pull/29): "Add min-count/max-count"
 
 - Merge [PR #23](https://github.com/leonardoborges/bouncer/pull/23): "Added date validator"
 
