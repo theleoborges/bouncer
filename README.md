@@ -35,8 +35,7 @@ Check [this blog post](http://www.leonardoborges.com/writings/2013/01/04/bouncer
 
 Stable release:
 
-
-[![[bouncer "0.3.1-beta1"]](https://clojars.org/bouncer/latest-version.svg)](https://clojars.org/bouncer/latest-version.svg)
+[![Clojars Project](http://clojars.org/bouncer/latest-version.svg)](http://clojars.org/bouncer)
 
 Development release:
 
