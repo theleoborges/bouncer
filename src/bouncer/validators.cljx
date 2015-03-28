@@ -82,6 +82,38 @@
   [maybe-a-number]
   (number? maybe-a-number))
 
+(defvalidator integer
+  "Validates maybe-an-int is a valid integer.
+
+  For use with validation functions such as `validate` or `valid?`"
+  {:default-message-format "%s must be an integer"}
+  [maybe-an-int]
+  (integer? maybe-an-int))
+
+(defvalidator boolean
+  "Validates maybe-a-boolean is a valid boolean.
+
+  For use with validation functions such as `validate` or `valid?`"
+  {:default-message-format "%s must be a boolean"}
+  [maybe-a-boolean]
+  (or (= false maybe-a-boolean)
+      (= true maybe-a-boolean)))
+
+(defvalidator string
+  "Validates maybe-a-string is a valid string.
+
+  For use with validation functions such as `validate` or `valid?`"
+  {:default-message-format "%s must be a string"}
+  [maybe-a-string]
+  (string? maybe-a-string))
+
+(defvalidator in-range
+  "Validates number is inside specified range [from to].
+
+  For use with validation functions such as `validate` or `valid?`"
+  {:default-message-format "%s must be in a specified range"}
+  [value [from to]]
+  (<= from value to))
 
 (defvalidator positive
   "Validates number is a number and is greater than zero.
