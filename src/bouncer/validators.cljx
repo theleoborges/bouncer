@@ -136,7 +136,7 @@
   (and (required value) (matches value #"^[^@]+@[^@\\.]+[\\.].+")))
 
 (defvalidator datetime
-  "Validates value is a date(time). 
+  "Validates value is a date(time).
 
   Optionally, takes a formatter argument which may be either an existing clj-time formatter, or a string representing a custom datetime formatter.
 
@@ -147,7 +147,8 @@
     (try
       (if formatter (f/parse formatter value) (f/parse value))
       #+clj (catch IllegalArgumentException e false)
-      #+cljs (catch js/Error e false))))
+      #+cljs (catch js/Error e false))
+    true))
 
 (defvalidator max-count
   "Validates value is not greater than a max count
