@@ -1,6 +1,13 @@
+## 0.3.3 (01/06/2015)
+
+- Merge [PR #26](https://github.com/leonardoborges/bouncer/pull/26): "Validators added: integer, string, boolean, in-range"
+
+- Fix cljx warnings
+
 ## 0.3.2 (23/01/2015)
 
-- Merge [PR #30](https://github.com/leonardoborges/bouncer/pull/30): "Prepare for 0.3.2 final release"
+
+- Merge [PR #30](https://github.com/leonardoborges/bouncer/pull/30): "Prepare for 0.3.2 final release``"
 
 - Merge [PR #29](https://github.com/leonardoborges/bouncer/pull/29): "Add min-count/max-count"
 
