@@ -2865,8 +2865,48 @@ net.brehaut.ClojureTools = (function (SH) {
     build_tree: build_tree
   };
 })(SyntaxHighlighter);
-</script><title>bouncer -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name"><a href="http://github.com/leonardoborges/bouncer">bouncer</a></h1><h2 class="project-version">0.3.2</h2><br /><p>A validation DSL for Clojure apps</p>
-</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.6.0</td></tr><tr><td class="dep-name">clj-time</td><td class="dotted"><hr /></td><td class="dep-version">0.9.0</td></tr><tr><td class="dep-name">com.andrewmcveigh/cljs-time</td><td class="dotted"><hr /></td><td class="dep-version">0.3.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#bouncer.core">bouncer.core</a></li><li><a href="#bouncer.validators">bouncer.validators</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#bouncer.core" name="bouncer.core"><h1 class="project-name">bouncer.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>The <code>core</code> namespace provides the two main entry point functions in bouncer:</p>
+</script><title>bouncer -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name"><a href="http://github.com/leonardoborges/bouncer">bouncer</a></h1><h2 class="project-version">0.3.3</h2><br /><p>A validation DSL for Clojure apps</p>
+</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.6.0</td></tr><tr><td class="dep-name">clj-time</td><td class="dotted"><hr /></td><td class="dep-version">0.9.0</td></tr><tr><td class="dep-name">com.andrewmcveigh/cljs-time</td><td class="dotted"><hr /></td><td class="dep-version">0.3.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#"></a></li><li><a href="#bouncer.core">bouncer.core</a></li><li><a href="#bouncer.validators">bouncer.validators</a></li><li><a href="#bouncer.core-test">bouncer.core-test</a></li><li><a href="#bouncer.validators-test">bouncer.validators-test</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#" name=""><h1 class="project-name"></h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>0.3.3</p>
+</td><td class="codes"><pre class="brush: clojure">(defproject bouncer 
+  :description &quot;A validation DSL for Clojure apps&quot;
+  :url &quot;http://github.com/leonardoborges/bouncer&quot;
+  :license {:name &quot;MIT License&quot;
+            :url &quot;http://opensource.org/licenses/MIT&quot;}
+  :dependencies [[org.clojure/clojure &quot;1.6.0&quot;]
+                 [clj-time &quot;0.9.0&quot;]
+                 [com.andrewmcveigh/cljs-time &quot;0.3.0&quot;]]
+  :jar-exclusions [#&quot;\.cljx&quot;]
+  :source-paths [&quot;src&quot; &quot;target/classes&quot;]
+  :test-paths [&quot;target/test-classes&quot;]
+  :prep-tasks [[&quot;cljx-once&quot;]]
+  :profiles {:1.4 {:dependencies [[org.clojure/clojure &quot;1.4.0&quot;]]}
+             :1.5 {:dependencies [[org.clojure/clojure &quot;1.5.1&quot;]]}
+             :1.6 {:dependencies [[org.clojure/clojure &quot;1.6.0&quot;]]}
+             :cljs {:dependencies [[org.clojure/clojurescript &quot;0.0-2665&quot;]]
+                    :plugins [[lein-cljsbuild &quot;1.0.3&quot;]
+                              [com.cemerick/clojurescript.test ]]
+                    :cljsbuild {:test-commands {&quot;phantom&quot; [&quot;phantomjs&quot; :runner &quot;target/testable.js&quot;]}
+                                :builds [{:source-paths [&quot;target/classes&quot; &quot;target/test-classes&quot;]
+                                         :compiler {:output-to &quot;target/testable.js&quot;
+                                                    :optimizations :whitespace}}]}
+                    :prep-tasks [[&quot;cljsbuild&quot; &quot;once&quot;]]
+                    :hooks [leiningen.cljsbuild]}
+             :cljx {:plugins [[com.keminglabs/cljx &quot;0.6.0&quot;]]
+                    :cljx {:builds [{:source-paths [&quot;src&quot;]
+                                     :output-path &quot;target/classes&quot;
+                                     :rules :clj}
+                                    {:source-paths [&quot;src&quot;]
+                                     :output-path &quot;target/classes&quot;
+                                     :rules :cljs}
+                                    {:source-paths [&quot;test&quot;]
+                                     :output-path &quot;target/test-classes&quot;
+                                     :rules :clj}
+                                    {:source-paths [&quot;test&quot;]
+                                     :output-path &quot;target/test-classes&quot;
+                                     :rules :cljs}]}}}
+  :aliases {&quot;all-tests&quot; [&quot;with-profile&quot; &quot;cljs:1.4:1.5:1.6&quot; &quot;test&quot;]
+            &quot;cljx-auto&quot; [&quot;with-profile&quot; &quot;cljx&quot; &quot;cljx&quot; &quot;auto&quot;]
+            &quot;cljx-once&quot; [&quot;with-profile&quot; &quot;cljx&quot; &quot;cljx&quot; &quot;once&quot;]})</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#bouncer.core" name="bouncer.core"><h1 class="project-name">bouncer.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>The <code>core</code> namespace provides the two main entry point functions in bouncer:</p>
 
 <ul>
 <li><code>validate</code></li>
@@ -3052,7 +3092,8 @@ map.</p>
           macros for defining new validators and validator sets</p>
 </td><td class="codes"><pre class="brush: clojure">(ns bouncer.validators
   {:author &quot;Leonardo Borges&quot;}
-        (:require [clj-time.format :as f]))</pre></td></tr><tr><td class="docs"><h2>Customization support</h2>
+        (:require [clj-time.format :as f])
+  (:refer-clojure :exclude [boolean]))</pre></td></tr><tr><td class="docs"><h2>Customization support</h2>
 
 <p>The following functions and macros support creating custom validators</p>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Defines a new validating function using args &amp; body semantics as provided by "defn".
@@ -3117,7 +3158,32 @@ in that order.</p></li>
 </td><td class="codes"><pre class="brush: clojure">(defvalidator number
   {:default-message-format &quot;%s must be a number&quot; :optional true}
   [maybe-a-number]
-  (number? maybe-a-number))</pre></td></tr><tr><td class="docs"><p>Validates number is a number and is greater than zero.</p>
+  (number? maybe-a-number))</pre></td></tr><tr><td class="docs"><p>Validates maybe-an-int is a valid integer.</p>
+
+<p>  For use with validation functions such as <code>validate</code> or <code>valid?</code></p>
+</td><td class="codes"><pre class="brush: clojure">(defvalidator integer
+  {:default-message-format &quot;%s must be an integer&quot;}
+  [maybe-an-int]
+  (integer? maybe-an-int))</pre></td></tr><tr><td class="docs"><p>Validates maybe-a-boolean is a valid boolean.</p>
+
+<p>  For use with validation functions such as <code>validate</code> or <code>valid?</code></p>
+</td><td class="codes"><pre class="brush: clojure">(defvalidator boolean
+  {:default-message-format &quot;%s must be a boolean&quot;}
+  [maybe-a-boolean]
+  (or (= false maybe-a-boolean)
+      (= true maybe-a-boolean)))</pre></td></tr><tr><td class="docs"><p>Validates maybe-a-string is a valid string.</p>
+
+<p>  For use with validation functions such as <code>validate</code> or <code>valid?</code></p>
+</td><td class="codes"><pre class="brush: clojure">(defvalidator string
+  {:default-message-format &quot;%s must be a string&quot;}
+  [maybe-a-string]
+  (string? maybe-a-string))</pre></td></tr><tr><td class="docs"><p>Validates number is inside specified range [from to].</p>
+
+<p>  For use with validation functions such as <code>validate</code> or <code>valid?</code></p>
+</td><td class="codes"><pre class="brush: clojure">(defvalidator in-range
+  {:default-message-format &quot;%s must be in a specified range&quot;}
+  [value [from to]]
+  (&lt;= from value to))</pre></td></tr><tr><td class="docs"><p>Validates number is a number and is greater than zero.</p>
 
 <p>  For use with validation functions such as <code>validate</code> or <code>valid?</code></p>
 </td><td class="codes"><pre class="brush: clojure">(defvalidator positive
@@ -3156,7 +3222,7 @@ in that order.</p></li>
 </td><td class="codes"><pre class="brush: clojure">(defvalidator email
   {:default-message-format &quot;%s must be a valid email address&quot;}
   [value]
-  (and (required value) (matches value #&quot;^[^@]+@[^@\\.]+[\\.].+&quot;)))</pre></td></tr><tr><td class="docs"><p>Validates value is a date(time). </p>
+  (and (required value) (matches value #&quot;^[^@]+@[^@\\.]+[\\.].+&quot;)))</pre></td></tr><tr><td class="docs"><p>Validates value is a date(time).</p>
 
 <p>  Optionally, takes a formatter argument which may be either an existing clj-time formatter, or a string representing a custom datetime formatter.</p>
 
@@ -3180,7 +3246,414 @@ in that order.</p></li>
   {:default-message-format &quot;%s is less than the minimum&quot;}
   [value minimum]
   (&gt;= (count (seq value)) minimum))</pre></td></tr><tr><td class="docs"><p>This file autogenerated from src/bouncer/validators.cljx</p>
-</td><td class="codes"></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/gdeer81/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a><div id="floating-toc"><ul><li class="floating-toc-li" id="floating-toc_bouncer.core">bouncer.core</li><li class="floating-toc-li" id="floating-toc_bouncer.validators">bouncer.validators</li></ul></div></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
+</td><td class="codes"></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#bouncer.core-test" name="bouncer.core-test"><h1 class="project-name">bouncer.core-test</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(ns bouncer.core-test
+  (:require [bouncer.core :as core]
+                  [clojure.test :refer [is deftest testing are]]
+                  [bouncer.validators :as v :refer [defvalidator]]))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(deftest validations
+  (testing &quot;Required validations&quot;
+    (is (not (core/valid? {}
+                          :name v/required)))
+    (is (not (core/valid? {:name }
+                          :name v/required)))
+    (is (not (core/valid? {:name nil}
+                          :name v/required)))
+    (is (core/valid? {:name &quot;Leo&quot;}
+                     :name v/required)))
+  (testing &quot;Number validations&quot;
+    ;; map entries are optional by default...
+    (is (core/valid? {}
+                     :age v/number))
+    ;;unless otherwise specified
+    (is (not (core/valid? {}
+                          :age [v/required v/number])))
+    (is (not (core/valid? {:age &quot;invalid&quot;}
+                          :age [v/number v/positive])))
+    (is (core/valid? {:age nil}
+                     :age v/number))
+    (is (core/valid? {:age 10}
+                     :age v/number)))
+  (testing &quot;Custom validations&quot;
+    (is (not (core/valid? {}
+                          :name (complement nil?))))
+    (is (core/valid? {:name &quot;Leo&quot;}
+                     :name (complement nil?)))
+    (letfn [(not-nil [v] ((complement nil?) v))]
+      (is (not (core/valid? {}
+                            :name not-nil)))
+      (is (core/valid? {:name &quot;Leo&quot;}
+                       :name not-nil)))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(deftest standard-functions
+  (testing &quot;it can use plain clojure functions as validators&quot;
+    (are [valid? subject    validations] (= valid? (core/valid? subject validations))
+         false   {:age 0}   {:age [[pos? :message &quot;positive&quot;]]}
+         true    {:age  10} {:age [[pos? :message &quot;positive&quot;]]}
+         false   {:age 0}   {:age pos?}
+         true    {:age  10} {:age pos?})))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def map-no-street {:address {:street nil :country &quot;Brazil&quot;}})
+(def map-with-street (assoc-in map-no-street [:address :street]
+                               &quot;Rock 'n Roll Boulevard&quot;))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(deftest nested-maps
+  (testing &quot;nested validations&quot;
+    (is (not (core/valid? map-no-street
+                          :address v/required
+                          [:address :street] v/required)))
+    (is (not (core/valid? map-no-street
+                          [:address :street] v/required)))
+    (is (core/valid? map-with-street
+                     :address v/required
+                     [:address :street] v/required))
+    (is (core/valid? map-with-street
+                          [:address :street] v/required))
+    (is (not (core/valid? {}
+                          [:address :street] v/required))))
+  (testing &quot;optional nested validations&quot;
+    (is (core/valid? {:passport {:issue-year 2012}}
+                     [:passport :issue-year] v/number))
+    (is (core/valid? {:passport {:issue-year nil}}
+                     [:passport :issue-year] v/number))
+    (is (not (core/valid? {:passport {:issue-year nil}}
+                          [:passport :issue-year] [v/required v/number])))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn first-error-for [key validation-result]
+  (-&gt; validation-result (first) key (first)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(deftest validation-messages
+  (testing &quot;default messages&quot;
+    (is (= {
+            :dob '(&quot;Custom validation failed for dob&quot;)
+            :year '(&quot;year must be a number&quot;)
+            :name '(&quot;name must be present&quot;)
+            :age '(&quot;age must be a positive number&quot;)
+            }
+           (first (core/validate {:age -1 :year }
+                    :name v/required
+                    :year v/number
+                    :age v/positive
+                    :dob (complement nil?))))))
+  (testing &quot;custom messages&quot;
+    (is (= {
+            :age '(&quot;Idade deve ser maior que zero&quot;)
+            :year '(&quot;Ano eh obrigatorio&quot;)
+            :name '(&quot;Nome eh obrigatorio&quot;)
+            :dob  '(&quot;Nao pode ser nulo&quot;)
+            }
+           (first (core/validate {:age -1 :year }
+                    :name [[v/required :message &quot;Nome eh obrigatorio&quot;]]
+                    :year [[v/required :message &quot;Ano eh obrigatorio&quot;]]
+                    :age [[v/positive :message &quot;Idade deve ser maior que zero&quot;]]
+                    :dob [[(complement nil?) :message &quot;Nao pode ser nulo&quot;]]))))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(deftest validation-result
+  (testing &quot;invalid results&quot;
+    (let [[result map] (core/validate {:age -1 :year }
+                                      :name v/required
+                                      :year [v/required v/number]
+                                      :age v/positive)]
+      (is (= result (::core/errors map)))))
+  (testing &quot;valid results&quot;
+    (let [[result map] (core/validate {:name &quot;Leo&quot;}
+                                      :name v/required)]
+      (is (true? (and (empty? result)
+                      (nil? (::core/errors map))))))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(deftest coll-validations
+  (let [valid-map   {:name &quot;Leo&quot; :pets [{:name &quot;Aragorn&quot;} {:name &quot;Gandalf&quot;}]}
+        invalid-map {:name &quot;Leo&quot; :pets [{:name nil} {:name &quot;Gandalf&quot;}]}]
+    (testing &quot;nested colls&quot;
+      (is (core/valid? valid-map
+                       :pets [[v/every #(not (nil? (:name %)))]]))
+      (is (not (core/valid? invalid-map
+                            :pets [[v/every #(not (nil? (:name %)))]]))))
+    (testing &quot;default messages for nested colls&quot;
+      (let [[result map] (core/validate invalid-map
+                           :pets [[v/every #(not (nil? (:name %)))]])]
+        (is (= &quot;All items in pets must satisfy the predicate&quot;
+               (-&gt; result :pets (first))))))
+    (testing &quot;custom messages for nested colls&quot;
+      (let [[result map] (core/validate invalid-map
+                           :pets [[v/every #(not (nil? (:name %)))
+                                   :message &quot;All pets must have names&quot;]])]
+        (is (= &quot;All pets must have names&quot;
+               (-&gt; result :pets (first)))))))
+  (testing &quot;deep nested coll&quot;
+    (is (core/valid? {:name &quot;Leo&quot;
+                      :address {:current { :country &quot;Australia&quot;}
+                                :past [{:country &quot;Spain&quot;} {:country &quot;Brasil&quot;}]}}
+                     [:address :past] [[v/every #(not (nil? (:country %)))]]))
+    (is (not (core/valid? {:name &quot;Leo&quot;
+                           :address {:current { :country &quot;Australia&quot;}
+                                     :past [{:country &quot;Spain&quot;} {:country nil}]}}
+                          [:address :past] [[v/every #(not (nil? (:country %)))]])))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(deftest early-exit
+  (testing &quot;short circuit validations for single entry&quot;
+    (is (= {:age '(&quot;age must be present&quot;)}
+           (first (core/validate {}
+                    :age [v/required v/number v/positive]))))
+    (is (= {:age '(&quot;age must be present&quot;)}
+           (first (core/validate {:age }
+                    :age [v/required v/number v/positive]))))
+    (is (= {:age '(&quot;age must be a number&quot;)}
+           (first (core/validate {:age &quot;NaN&quot;}
+                    :age [v/required v/number v/positive]))))
+    (is (= {:age '(&quot;age must be a positive number&quot;)}
+           (first (core/validate {:age -7}
+                    :age [v/required v/number v/positive]))))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn pred-fn [x]
+  (not (nil? (:country x))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(deftest all-validations
+  (testing &quot;all built-in validators&quot;
+    (let [errors-map {
+                      :age    '({:path [:age], :value , :args nil, :message nil
+                                 :metadata {:default-message-format &quot;%s must be present&quot;
+                                            :optional false
+                                            :validator :bouncer.validators/required}})
+                      :mobile '({:path [:mobile], :value nil, :args nil, :message &quot;wrong format&quot;
+                                 :metadata {:default-message-format &quot;Custom validation failed for %s&quot;
+                                            :optional false}})
+                      :car    '({:path [:car], :value nil, :args [[&quot;Ferrari&quot; &quot;Mustang&quot; &quot;Mini&quot;]], :message nil
+                                 :metadata {:default-message-format &quot;%s must be one of the values in the list&quot;
+                                            :optional false
+                                            :validator :bouncer.validators/member}})
+                      :dob    '({:path [:dob], :value &quot;NaN&quot;, :args nil, :message nil
+                                 :metadata {:default-message-format &quot;%s must be a number&quot;
+                                            :optional true
+                                            :validator :bouncer.validators/number}})
+                      :name   '({:path [:name], :value nil, :args nil, :message nil
+                                 :metadata {:default-message-format &quot;%s must be present&quot;
+                                            :optional false
+                                            :validator :bouncer.validators/required}})
+                      :passport {:number '({:path [:passport :number], :value -7, :args nil, :message nil
+                                            :metadata {:default-message-format &quot;%s must be a positive number&quot;
+                                                       :optional true
+                                                       :validator :bouncer.validators/positive}})}
+                      :address  {:past   (list {:path [:address :past], :value [{:country nil} {:country &quot;Brasil&quot;}],
+                                                :args [pred-fn] :message nil
+                                                :metadata {:default-message-format &quot;All items in %s must satisfy the predicate&quot;
+                                                           :optional false
+                                                           :validator :bouncer.validators/every}})}
+                      }
+          invalid-map {:name nil
+                       :age 
+                       :passport {:number -7 :issued_by &quot;Australia&quot;}
+                       :dob &quot;NaN&quot;
+                       :address {:current { :country &quot;Australia&quot;}
+                                 :past [{:country nil} {:country &quot;Brasil&quot;}]}}]
+      (is (= errors-map
+             (first (core/validate identity
+                                   invalid-map
+                                   :name v/required
+                                   :age v/required
+                                   :mobile [[string? :message &quot;wrong format&quot;]]
+                                   :car [[v/member [&quot;Ferrari&quot; &quot;Mustang&quot; &quot;Mini&quot;]]]
+                                   :dob v/number
+                                   [:passport :number] v/positive
+                                   [:address :past] [[v/every pred-fn]])))))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(deftest pipelining-validations
+  (testing &quot;should preserve the existing errors map if there is one&quot;
+    (let [validation-errors (-&gt; {:age &quot;NaN&quot;}
+                            (core/validate :name v/required)
+                            second
+                            (core/validate :age v/number)
+                            second
+                            ::core/errors)]
+      (is (= 2
+             (count (select-keys validation-errors [:age :name])))))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(deftest preconditions
+  (testing &quot;runs the current validation only if the pre-condition is met&quot;
+    (is (core/valid? {:a 1 :b &quot;Z&quot;}
+                     :b [[v/member #{&quot;Y&quot; &quot;Z&quot;} :pre (comp pos? :a)]]))
+    (is (not (core/valid? {:a 1 :b &quot;X&quot;}
+                          :b [[v/member #{&quot;Y&quot; &quot;Z&quot;} :pre (comp pos? :a)]])))
+    (is (core/valid? {:a -1 :b &quot;Z&quot;}
+                     :b [[v/member #{&quot;Y&quot; &quot;Z&quot;} :pre (comp pos? :a)]]))
+    (is (core/valid? {:a -1 :b &quot;X&quot;}
+                     :b [[v/member #{&quot;Y&quot; &quot;Z&quot;} :pre (comp pos? :a)]]))
+    (is (not (core/valid? {:a 1 :b &quot;Z&quot;}
+                          :b [[v/member #{&quot;Y&quot; &quot;Z&quot;} :pre (comp pos? :a)]]
+                          :c v/required)))))</pre></td></tr><tr><td class="docs"><p>This file autogenerated from test/bouncer/core_test.cljx</p>
+</td><td class="codes"></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#bouncer.validators-test" name="bouncer.validators-test"><h1 class="project-name">bouncer.validators-test</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(ns bouncer.validators-test
+  (:require [bouncer.core :as core]
+            [bouncer.validators :as v]
+                  [clojure.test :refer [deftest testing is]]
+                  [clj-time.format :as f]))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def addr-validator-set
+  {:postcode [v/required v/number]
+   :street    v/required
+   :country   v/required
+   :past      [[v/every #(not (nil? (:country %)))]]})</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def addr-validator-set+custom-messages
+  {:postcode [[v/required :message &quot;required&quot;] [v/number :message &quot;number&quot;]]
+   :street    [[v/required :message &quot;required&quot;]]
+   :country   [[v/required :message &quot;required&quot;]]
+   :past      [[v/every #(not (nil? (:country %))) :message &quot;every&quot;]]})</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def address-validator
+  {:postcode v/required})</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def person-validator
+  {:name [v/required v/string]
+   :age [v/required v/number v/integer]
+   :address address-validator})</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def deep-validator
+  {:winner person-validator})</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def default-validate (partial core/validate core/with-default-messages))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(deftest validator-sets
+  (testing &quot;validator sets for nested maps&quot;
+    (is (core/valid? {:address {:postcode 2000
+                                  :street   &quot;Crown St&quot;
+                                  :country  &quot;Australia&quot;
+                                  :past [{:country &quot;Spain&quot;} {:country &quot;Brazil&quot;}]}}
+                     :address addr-validator-set))
+    (is (not (core/valid? {}
+                       :address addr-validator-set)))
+    (let [errors-map {:address {
+                                :postcode '(&quot;postcode must be present&quot;)
+                                :street   '(&quot;street must be present&quot;)
+                                :country  '(&quot;country must be present&quot;)
+                                :past '(&quot;All items in past must satisfy the predicate&quot;)
+                                }}
+          invalid-map {:address {:postcode 
+                                 :past [{:country nil} {:country &quot;Brasil&quot;}]}}]
+      (is (= errors-map
+             (first (default-validate invalid-map
+                                   :address addr-validator-set))))))
+  (testing &quot;custom messages in validator sets&quot;
+    (let [errors-map {:address {
+                                :postcode '(&quot;required&quot;)
+                                :street    '(&quot;required&quot;)
+                                :country   '(&quot;required&quot;)
+                                :past '(&quot;every&quot;)
+                                }}
+          invalid-map {:address {:postcode 
+                                 :past [{:country nil} {:country &quot;Brasil&quot;}]}}]
+      (is (= errors-map
+             (first (default-validate invalid-map
+                                   :address addr-validator-set+custom-messages))))))
+  (testing &quot;validator sets and standard validators together&quot;
+    (let [errors-map {:age '(&quot;required&quot;)
+                      :name '(&quot;name must be present&quot;)
+                      :passport {:number '(&quot;number must be a positive number&quot;)}
+                      :address {
+                                :postcode '(&quot;postcode must be a number&quot;)
+                                :street    '(&quot;street must be present&quot;)
+                                :country   '(&quot;country must be present&quot;)
+                                :past '(&quot;All items in past must satisfy the predicate&quot;)
+                                }}
+          invalid-map {:name nil
+                       :age 
+                       :passport {:number -7 :issued_by &quot;Australia&quot;}
+                       :address {:postcode &quot;NaN&quot;
+                                 :past [{:country nil} {:country &quot;Brasil&quot;}]}}]
+      (is (= errors-map
+             (first (default-validate invalid-map
+                                   :name v/required
+                                   :age [[(complement empty?) :message &quot;required&quot;]]
+                                   [:passport :number] v/positive
+                                   :address addr-validator-set))))))
+  (testing &quot;composing validator sets at the top level&quot;
+    (is (core/valid? {:address {:postcode 2000}
+                      :name &quot;Leo&quot;
+                      :age 29}
+                     person-validator))
+    (is (not (core/valid? {}
+                          person-validator)))
+    (let [errors-map {:address {:postcode '(&quot;postcode must be present&quot;)}
+                      :name '(&quot;name must be present&quot;)
+                      :age  '(&quot;age must be present&quot;)}]
+      (is (= errors-map
+             (first (default-validate {}
+                                   person-validator)))))
+    ;; Test for issue #7 on github
+    (let [errors-map {:winner {:address {:postcode '(&quot;postcode must be present&quot;)}
+                               :name '(&quot;name must be present&quot;)
+                               :age  '(&quot;age must be present&quot;)}}]
+      (is (= errors-map
+             (first (default-validate {}
+                                   deep-validator)))))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def valid-items #{:a :b :c})</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def items-validator-set
+  {:field1 [[v/member valid-items]]})</pre></td></tr><tr><td class="docs"><p>addresses Issue https://github.com/leonardoborges/bouncer/issues/5</p>
+</td><td class="codes"><pre class="brush: clojure">(deftest nested-symbols
+  (testing &quot;validator sets supports symbols -which are to be resolved- as arguments to validator functions&quot;
+    (is (not (core/valid? {:field1 :e}
+                          items-validator-set)))
+    (is (core/valid? {:field1 :a}
+                          items-validator-set))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(deftest boolean-validator
+  (testing &quot;value must be a boolean &quot;
+    (is (core/valid? {:active true} 
+                     :active v/boolean))
+    (is (core/valid? {:active false} 
+                     :active v/boolean))
+    (is (not (core/valid? {:active &quot;false&quot;} 
+                          :active v/boolean)))
+    (is (not (core/valid? {:active 0} 
+                          :active v/boolean)))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(deftest range-validator
+  (testing &quot;presence of value in the given range&quot;
+    (is (core/valid? {:age 4} 
+                     :age [[v/in-range [0 5]]]))
+    (is (not (core/valid? {:age 10}
+                          :age [[v/in-range [0 9]]])))
+    (is (core/valid? {:rating 3.7} 
+                     :rating [[v/in-range [0 4]]]))
+    (is (core/valid? {:rating 10.0}
+                     :rating [[v/in-range [0 10]]]))
+    (is (not (core/valid? {:rating 10.1}
+                     :rating [[v/in-range [0 10]]])))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(deftest member-validator
+  (testing &quot;presence of value in a collection&quot;
+    (is (core/valid? {:age 4}
+                     :age [[v/member (range 5)]]))
+    (is (not (core/valid? {:age 5}
+                          :age [[v/member (range 5)]])))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(deftest regex-validator
+  (testing &quot;matching the given pattern&quot;
+    (is (core/valid? {:phone &quot;555&quot;}
+                  :phone [[v/matches #&quot;^\d+$&quot;]]))
+    (is (not (core/valid? {:phone &quot;NaN&quot;}
+                  :phone [[v/matches #&quot;^\d+$&quot;]])))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(deftest email-validator
+  (testing &quot;can match typical legal emails&quot;
+    (is (core/valid? {:email &quot;test@googlexyz.com&quot;} :email [[v/email]]))
+    (is (core/valid? {:email &quot;test+blabla@googlexyz.com&quot;} :email [[v/email]]))
+    (is (core/valid? {:email &quot;test@googlexyz.co.uk&quot;} :email [[v/email]])))
+  (testing &quot;will reject invalid emails&quot;
+    (is (not (core/valid? {:email nil} :email [[v/email]])))
+    (is (not (core/valid? {:email } :email [[v/email]])))
+    (is (not (core/valid? {:email &quot;test&quot;} :email [[v/email]])))
+    (is (not (core/valid? {:email &quot;test@&quot;} :email [[v/email]])))
+    (is (not (core/valid? {:email &quot;test@googlexyz&quot;} :email [[v/email]])))
+    (is (not (core/valid? {:email &quot;@google.xyz.com&quot;} :email [[v/email]])))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def y-m (f/formatters :year-month))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(deftest datetime-validator
+  (testing &quot;matched without custom formatter&quot;
+    (is (core/valid? {:dt &quot;2014-04-02&quot;} :dt [[v/datetime]]))
+    (is (core/valid? {:dt &quot;2014-04-02 03:03:03&quot;} :dt [[v/datetime]])))
+  (testing &quot;rejected without custom formatter&quot;
+    (is (not (core/valid? {:dt &quot;2014/04/01&quot;} :dt [[v/datetime]]))))
+  (testing &quot;matched with custom formatter&quot;
+    (is (core/valid? {:dt &quot;2014/04/01&quot;} :dt [[v/datetime &quot;yyyy/MM/dd&quot;]])))
+  (testing &quot;valid date rejected because of specific clj-time formatter&quot;
+    (is (not (core/valid? {:dt &quot;2014-01-02&quot;} :dt [[v/datetime y-m]]))))
+  (testing &quot;matched by specific clj-time formatter&quot;
+    (is (core/valid? {:dt &quot;2014-01&quot;} :dt [[v/datetime y-m]]))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(deftest max-count-validator
+  (testing &quot;enforcing a maximum value for count&quot;
+    (testing &quot;with strings&quot;
+    (is (core/valid? {:first-name &quot;First Name&quot;} :first-name [[v/max-count 10]]))
+    (is (not (core/valid? {:first-name &quot;First Name&quot;} :first-name [[v/max-count 9]]))))
+    (testing &quot;with collections&quot;
+    (is (core/valid? {:a-vector [1 2 3]} :a-vector [[v/max-count 3]]))
+    (is (core/valid? {:a-list '(1 2 3)} :a-list [[v/max-count 3]]))
+    (is (not (core/valid? {:a-map {:city &quot;Atlanta&quot; :state &quot;Georgia&quot;}} :a-map [[v/max-count 1]]))))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(deftest min-count-validator
+  (testing &quot;enforcing a minimum value for count&quot;
+    (testing &quot;with strings&quot;
+    (is (core/valid? {:password &quot;password1&quot;} :password [[v/min-count 8]]))
+    (is (not (core/valid? {:password &quot;open&quot;} :password [[v/min-count 5]]))))
+    (testing &quot;with collections&quot;
+    (is (core/valid? {:a-vector [1 2 3]} :a-vector [[v/min-count 3]]))
+    (is (core/valid? {:a-list '(1 2 3)} :a-list [[v/min-count 3]]))
+    (is (not (core/valid? {:a-map {:city &quot;Atlanta&quot; :state &quot;Georgia&quot;}} :a-map [[v/min-count 3]]))))))</pre></td></tr><tr><td class="docs"><p>This file autogenerated from test/bouncer/validators_test.cljx</p>
+</td><td class="codes"></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/gdeer81/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a><div id="floating-toc"><ul><li class="floating-toc-li" id="floating-toc_"></li><li class="floating-toc-li" id="floating-toc_bouncer.core">bouncer.core</li><li class="floating-toc-li" id="floating-toc_bouncer.validators">bouncer.validators</li><li class="floating-toc-li" id="floating-toc_bouncer.core-test">bouncer.core-test</li><li class="floating-toc-li" id="floating-toc_bouncer.validators-test">bouncer.validators-test</li></ul></div></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
 SyntaxHighlighter.all();
 
 // hackity hack
