@@ -4,7 +4,8 @@
   {:author "Leonardo Borges"}
   #+clj (:require [clj-time.format :as f])
   #+cljs (:require [cljs-time.format :as f])
-  #+cljs (:require-macros [bouncer.validators :refer [defvalidator]]))
+  #+cljs (:require-macros [bouncer.validators :refer [defvalidator]])
+  (:refer-clojure :exclude [boolean]))
 
 ;; ## Customization support
 ;;
@@ -168,7 +169,7 @@
   (and (required value) (matches value #"^[^@]+@[^@\\.]+[\\.].+")))
 
 (defvalidator datetime
-  "Validates value is a date(time). 
+  "Validates value is a date(time).
 
   Optionally, takes a formatter argument which may be either an existing clj-time formatter, or a string representing a custom datetime formatter.
 
