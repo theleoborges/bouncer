@@ -26,7 +26,7 @@
                                                     :optimizations :whitespace}}]}
                     :prep-tasks [["cljsbuild" "once"]]
                     :hooks [leiningen.cljsbuild]}
-             :cljx {:plugins [[com.keminglabs/cljx "0.4.0"]]
+             :cljx {:plugins [[com.keminglabs/cljx "0.6.0"]]
                     :cljx {:builds [{:source-paths ["src"]
                                      :output-path "target/classes"
                                      :rules :clj}
