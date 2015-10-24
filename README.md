@@ -348,7 +348,7 @@ As an example, here's a simplified version of the `bouncer.validators/number` va
 Options is a map of key/value pairs where:
 
 - `:default-message-format` - to be used when clients of this validator don't provide one
-- `:optional` - a boolean indicating if this validator should only trigger for keys that have a value different than `nil`. Defaults to false.
+- `:optional` - a boolean indicating if this validator should only trigger for keys that have a value different than `nil`. Defaults to true.
 
 That's all syntactic sugar for:
 

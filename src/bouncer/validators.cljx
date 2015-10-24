@@ -21,7 +21,7 @@
   provide a message (consider using custom message functions)
 
   - `:optional` whether the validation should be run only if the given key has
-  a non-nil value in the map. Defaults to false.
+  a non-nil value in the map. Defaults to true.
 
   or any other key-value pair which will be available in the validation result
   under the `:metadata` key.
@@ -53,8 +53,9 @@
         [fn-meta [args & body]] (if (map? (first options))
                                   [(first options) (next options)]
                                   [nil options])
-        fn-meta (assoc fn-meta
-                       :validator (keyword (str *ns*) (str name)))]
+        fn-meta (merge {:optional true}
+                       fn-meta
+                       {:validator (keyword (str *ns*) (str name))})]
     (let [arglists ''([name])]
       `(do (def ~name (with-meta (fn ~name
                                    ([~@args]
@@ -69,7 +70,8 @@
 
   For use with validation functions such as `validate` or `valid?`
 "
-  {:default-message-format "%s must be present"}
+  {:default-message-format "%s must be present"
+   :optional false}
   [value]
   (if (string? value)
     (not (empty? value))
@@ -79,7 +81,7 @@
   "Validates maybe-a-number is a valid number.
 
   For use with validation functions such as `validate` or `valid?`"
-  {:default-message-format "%s must be a number" :optional true}
+  {:default-message-format "%s must be a number"}
   [maybe-a-number]
   (number? maybe-a-number))
 
@@ -120,7 +122,7 @@
   "Validates number is a number and is greater than zero.
 
   For use with validation functions such as `validate` or `valid?`"
-  {:default-message-format "%s must be a positive number" :optional true}
+  {:default-message-format "%s must be a positive number"}
   [number]
   (> number 0))
 
@@ -153,7 +155,7 @@
   "Validates value satisfies the given regex pattern.
 
    For use with validation functions such as `validate` or `valid?`"
-  {:default-message-format "%s must satisfy the given pattern" :optional true}
+  {:default-message-format "%s must satisfy the given pattern"}
   [value re]
   ((complement empty?) (re-seq re value)))
 
