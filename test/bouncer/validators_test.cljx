@@ -172,7 +172,6 @@
     (is (core/valid? {:email "test+blabla@googlexyz.com"} :email [[v/email]]))
     (is (core/valid? {:email "test@googlexyz.co.uk"} :email [[v/email]])))
   (testing "will reject invalid emails"
-    (is (not (core/valid? {:email nil} :email [[v/email]])))
     (is (not (core/valid? {:email ""} :email [[v/email]])))
     (is (not (core/valid? {:email "test"} :email [[v/email]])))
     (is (not (core/valid? {:email "test@"} :email [[v/email]])))

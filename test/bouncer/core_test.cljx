@@ -202,9 +202,9 @@
                       :mobile '({:path [:mobile], :value nil, :args nil, :message "wrong format"
                                  :metadata {:default-message-format "Custom validation failed for %s"
                                             :optional false}})
-                      :car    '({:path [:car], :value nil, :args [["Ferrari" "Mustang" "Mini"]], :message nil
+                      :car    '({:path [:car], :value "Volvo", :args [["Ferrari" "Mustang" "Mini"]], :message nil
                                  :metadata {:default-message-format "%s must be one of the values in the list"
-                                            :optional false
+                                            :optional true
                                             :validator :bouncer.validators/member}})
                       :dob    '({:path [:dob], :value "NaN", :args nil, :message nil
                                  :metadata {:default-message-format "%s must be a number"
@@ -221,11 +221,12 @@
                       :address  {:past   (list {:path [:address :past], :value [{:country nil} {:country "Brasil"}],
                                                 :args [pred-fn] :message nil
                                                 :metadata {:default-message-format "All items in %s must satisfy the predicate"
-                                                           :optional false
+                                                           :optional true
                                                            :validator :bouncer.validators/every}})}
                       }
           invalid-map {:name nil
                        :age ""
+                       :car "Volvo"
                        :passport {:number -7 :issued_by "Australia"}
                        :dob "NaN"
                        :address {:current { :country "Australia"}
