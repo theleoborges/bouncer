@@ -40,7 +40,7 @@ Stable release:
 Development release:
 
 ```clojure
-[bouncer "0.3.2-SNAPSHOT"]
+[bouncer "1.0.0"]
 ```
 
 Check out the [CHANGELOG](https://github.com/leonardoborges/bouncer/blob/master/CHANGELOG.md) to see what's new.

@@ -1,3 +1,7 @@
+## 1.0.0 (21/12/2015)
+
+- Merge [PR #41](https://github.com/leonardoborges/bouncer/pull/33): "Fixes #36: All validators are optional by default"
+
 ## 0.3.3 (01/06/2015)
 
 - Merge [PR #26](https://github.com/leonardoborges/bouncer/pull/26): "Validators added: integer, string, boolean, in-range"
