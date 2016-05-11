@@ -212,3 +212,12 @@
     (is (core/valid? {:a-vector [1 2 3]} :a-vector [[v/min-count 3]]))
     (is (core/valid? {:a-list '(1 2 3)} :a-list [[v/min-count 3]]))
     (is (not (core/valid? {:a-map {:city "Atlanta" :state "Georgia"}} :a-map [[v/min-count 3]]))))))
+
+(deftest alphanumeric-validator
+  (testing "enforcing alphanumeric values"
+    (testing "with strings"
+      (is (core/valid? {:string "a3lcien209sta2un48"} :string v/alphanumeric))
+      (is (not (core/valid? {:string "a193r8l~!@#`"} :string v/alphanumeric)))
+      (is (not (core/valid? {:string "?><OI:Y:a1\"93r8l~'!@#{}`"} :string v/alphanumeric)))
+      (is (core/valid? {:string "qwfpgjluyarstdhneoizxcvbkm1234567890QWFPGJLUYOARSTDHNEIZXCVBKM"} :string v/alphanumeric)))))
+
