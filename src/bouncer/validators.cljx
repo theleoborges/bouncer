@@ -199,3 +199,12 @@
   {:default-message-format "%s is less than the minimum"}
   [value minimum]
   (>= (count (seq value)) minimum))
+
+
+(defvalidator alphanumeric
+  "Validates that value is alphanumeric
+
+  For use with validation functions such as `validate` or `valid?`"
+  {:default-message-format "%s is not alphanumeric"}
+  [value]
+  (matches value #"^[a-zA-Z0-9]+$"))
