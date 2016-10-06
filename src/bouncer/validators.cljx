@@ -182,7 +182,8 @@
     (try
       (if formatter (f/parse formatter value) (f/parse value))
       #+clj (catch IllegalArgumentException e false)
-      #+cljs (catch js/Error e false))))
+      #+cljs (catch js/Error e false))
+    true))
 
 (defvalidator max-count
   "Validates value is not greater than a max count
