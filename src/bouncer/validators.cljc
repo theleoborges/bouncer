@@ -2,9 +2,9 @@
   "This namespace contains all built-in validators as well as
           macros for defining new validators and validator sets"
   {:author "Leonardo Borges"}
-  #+clj (:require [clj-time.format :as f])
-  #+cljs (:require [cljs-time.format :as f])
-  #+cljs (:require-macros [bouncer.validators :refer [defvalidator]])
+  #?(:clj (:require [clj-time.format :as f]))
+  #?(:cljs (:require [cljs-time.format :as f]))
+  #?(:cljs (:require-macros [bouncer.validators :refer [defvalidator]]))
   (:refer-clojure :exclude [boolean]))
 
 ;; ## Customization support
@@ -181,8 +181,8 @@
   (let [formatter (if (string? opt) (f/formatter opt) opt)]
     (try
       (if formatter (f/parse formatter value) (f/parse value))
-      #+clj (catch IllegalArgumentException e false)
-      #+cljs (catch js/Error e false))))
+      #?(:clj (catch IllegalArgumentException e false))
+      #?(:cljs (catch js/Error e false)))))
 
 (defvalidator max-count
   "Validates value is not greater than a max count

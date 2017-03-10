@@ -1,11 +1,10 @@
 (ns bouncer.validators-test
   (:require [bouncer.core :as core]
             [bouncer.validators :as v]
-            #+clj [clojure.test :refer [deftest testing is]]
-            #+clj [clj-time.format :as f]
-            #+cljs [cemerick.cljs.test :as t]
-            #+cljs [cljs-time.format :as f])
-  #+cljs (:require-macros [cemerick.cljs.test :refer [is deftest testing]]))
+            #?(:clj [clojure.test :refer [deftest testing is]])
+            #?(:clj [clj-time.format :as f])
+            #?(:cljs [cljs-time.format :as f])
+            #?(:cljs [cljs.test :refer-macros [is are deftest testing use-fixtures]])))
 
 (def addr-validator-set
   {:postcode [v/required v/number]
@@ -130,22 +129,22 @@
 
 (deftest boolean-validator
   (testing "value must be a boolean "
-    (is (core/valid? {:active true} 
+    (is (core/valid? {:active true}
                      :active v/boolean))
-    (is (core/valid? {:active false} 
+    (is (core/valid? {:active false}
                      :active v/boolean))
-    (is (not (core/valid? {:active "false"} 
+    (is (not (core/valid? {:active "false"}
                           :active v/boolean)))
-    (is (not (core/valid? {:active 0} 
+    (is (not (core/valid? {:active 0}
                           :active v/boolean)))))
 
 (deftest range-validator
   (testing "presence of value in the given range"
-    (is (core/valid? {:age 4} 
+    (is (core/valid? {:age 4}
                      :age [[v/in-range [0 5]]]))
     (is (not (core/valid? {:age 10}
                           :age [[v/in-range [0 9]]])))
-    (is (core/valid? {:rating 3.7} 
+    (is (core/valid? {:rating 3.7}
                      :rating [[v/in-range [0 4]]]))
     (is (core/valid? {:rating 10.0}
                      :rating [[v/in-range [0 10]]]))
