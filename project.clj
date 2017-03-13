@@ -26,7 +26,7 @@
                                                   :pretty-print  true}}}}
                     :prep-tasks [["cljsbuild" "once"]]
                     :hooks      [leiningen.cljsbuild]}}
-
+  ;; TODO: Update travis configuration so cljs tests run alongside JVM tests
   :aliases {"clj-tests" ["with-profile" "1.6:dev" "test"]
             "cljs-tests" ["with-profile" "cljs" "doo" "node" "once"]
             "cljs-auto" ["with-profile" "cljs" "cljsbuild" "auto"]
