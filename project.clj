@@ -1,45 +1,33 @@
-(defproject bouncer "1.0.0"
+(defproject bouncer "1.0.1"
   :description "A validation library for Clojure apps"
   :url "http://github.com/leonardoborges/bouncer"
   :license {:name "MIT License"
-            :url "http://opensource.org/licenses/MIT"}
+            :url  "http://opensource.org/licenses/MIT"}
 
-  :dependencies [[org.clojure/clojure "1.6.0"]
-                 [org.clojure/clojurescript "0.0-2665"]
-                 [clj-time "0.9.0"]
-                 [com.andrewmcveigh/cljs-time "0.3.0"]]
-  :jar-exclusions [#"\.cljx"]
-  :source-paths ["src" "target/classes"]
-  :test-paths ["target/test-classes"]
+  :dependencies [[org.clojure/clojure "1.8.0"]
+                 [org.clojure/clojurescript "1.9.495"]
+                 [clj-time "0.13.0"]
+                 [com.andrewmcveigh/cljs-time "0.5.0-alpha2"]]
 
-  :prep-tasks [["cljx-once"] "javac" "compile"]
-
-  :profiles {:dev  {:plugins [[com.keminglabs/cljx "0.6.0"
-                               :exclusions [org.clojure/clojure]]]}
-             :1.4  {:dependencies [[org.clojure/clojure "1.4.0"]]}
-             :1.5  {:dependencies [[org.clojure/clojure "1.5.1"]]}
+  :profiles {:dev  {}
              :1.6  {:jdependencies [[org.clojure/clojure "1.6.0"]]}
-             :cljs {:plugins [[lein-cljsbuild "1.0.3"]
-                              [com.cemerick/clojurescript.test "0.3.3"]]
-                    :cljsbuild {:test-commands {"phantom" ["phantomjs" :runner "target/testable.js"]}
-                                :builds [{:source-paths ["target/classes" "target/test-classes"]
-                                          :compiler {:output-to "target/testable.js"
-                                                     :optimizations :whitespace}}]}
+             :cljs {:plugins    [[lein-cljsbuild "1.1.5"]
+                                 [lein-doo "0.1.7"]]
+                    :doo        {:build "test"}
+                    :cljsbuild
+                                {:builds
+                                 {:test
+                                  {:source-paths ["src" "test"]
+                                   :compiler     {:main          bouncer.runner
+                                                  :output-to     "target/test/core.js"
+                                                  :target        :nodejs
+                                                  :optimizations :none
+                                                  :source-map    true
+                                                  :pretty-print  true}}}}
                     :prep-tasks [["cljsbuild" "once"]]
-                    :hooks [leiningen.cljsbuild]}
-             :cljx {:cljx {:builds [{:source-paths ["src"]
-                                     :output-path "target/classes"
-                                     :rules :clj}
-                                    {:source-paths ["src"]
-                                     :output-path "target/classes"
-                                     :rules :cljs}
-                                    {:source-paths ["test"]
-                                     :output-path "target/test-classes"
-                                     :rules :clj}
-                                    {:source-paths ["test"]
-                                     :output-path "target/test-classes"
-                                     :rules :cljs}]}}}
-
-  :aliases {"all-tests" ["with-profile" "cljs:1.4:1.5:1.6" "test"]
-            "cljx-auto" ["with-profile" "cljx" "cljx" "auto"]
-            "cljx-once" ["with-profile" "cljx" "cljx" "once"]})
+                    :hooks      [leiningen.cljsbuild]}}
+  ;; TODO: Update travis configuration so cljs tests run alongside JVM tests
+  :aliases {"clj-tests" ["with-profile" "1.6:dev" "test"]
+            "cljs-tests" ["with-profile" "cljs" "doo" "node" "once"]
+            "cljs-auto" ["with-profile" "cljs" "cljsbuild" "auto"]
+            "cljs-once" ["with-profile" "cljs" "cljsbuild" "once"]})

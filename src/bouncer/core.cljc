@@ -14,8 +14,8 @@ it's pretty comprehensive.
 If you'd like to know more about the motivation behind `bouncer`, check the
 [announcement post](http://www.leonardoborges.com/writings/2013/01/04/bouncer-validation-lib-for-clojure/)."
   {:author "Leonardo Borges"}
-  #+cljs (:require [goog.string :as gstring]
-                   [goog.string.format]))
+  #?(:cljs (:require [goog.string :as gstring]
+                     [goog.string.format])))
 
 
 
@@ -24,18 +24,18 @@ If you'd like to know more about the motivation behind `bouncer`, check the
 (defn- build-multi-step
   ([key-or-vec fn-vec] (build-multi-step key-or-vec fn-vec []))
   ([key-or-vec [f-or-list & rest] acc]
-     (if-not f-or-list
-       acc
-       (cond
-        (sequential? f-or-list)
-        (let [[f & opts] f-or-list]
-          (recur key-or-vec
-                 rest
-                 (conj acc (concat [f key-or-vec ] opts))))
+   (if-not f-or-list
+     acc
+     (cond
+       (sequential? f-or-list)
+       (let [[f & opts] f-or-list]
+         (recur key-or-vec
+                rest
+                (conj acc (concat [f key-or-vec] opts))))
 
-        :else (recur key-or-vec
-                     rest
-                     (conj acc [f-or-list key-or-vec]))))))
+       :else (recur key-or-vec
+                    rest
+                    (conj acc [f-or-list key-or-vec]))))))
 
 (defn- merge-path
   "Takes two arguments:
@@ -67,15 +67,15 @@ If you'd like to know more about the motivation behind `bouncer`, check the
                 forms)]
     (reduce (fn [acc [key-or-vec sym-or-coll :as rule]]
               (cond
-               (vector? sym-or-coll)
-               (concat acc (build-multi-step key-or-vec sym-or-coll))
+                (vector? sym-or-coll)
+                (concat acc (build-multi-step key-or-vec sym-or-coll))
 
 
-               (map? sym-or-coll)
-               (concat acc (build-steps (merge-path key-or-vec
-                                                    sym-or-coll)))
+                (map? sym-or-coll)
+                (concat acc (build-steps (merge-path key-or-vec
+                                                     sym-or-coll)))
 
-               :else (conj acc [sym-or-coll key-or-vec])))
+                :else (conj acc [sym-or-coll key-or-vec])))
             []
             (partition 2 forms))))
 
@@ -102,17 +102,17 @@ If you'd like to know more about the motivation behind `bouncer`, check the
   Returns `acc` augmented with a namespace qualified ::errors keyword
 "
   [message-fn acc [pred k & args]]
-  (let [k (if (vector? k) k [k])
-        error-path (cons ::errors k)
+  (let [k            (if (vector? k) k [k])
+        error-path   (cons ::errors k)
 
         {:keys [optional default-message-format]
-         :or {optional false
-              default-message-format "Custom validation failed for %s"}
-         :as metadata} (meta pred)
+         :or   {optional               false
+                default-message-format "Custom validation failed for %s"}
+         :as   metadata} (meta pred)
 
         meta-with-defaults
-        (merge metadata {:default-message-format default-message-format
-                         :optional optional})
+                     (merge metadata {:default-message-format default-message-format
+                                      :optional               optional})
 
         [args opts] (split-with (complement keyword?) args)
         {:keys [message pre]} (apply hash-map opts)
@@ -123,10 +123,10 @@ If you'd like to know more about the motivation behind `bouncer`, check the
               (apply pred pred-subject args))
         acc
         (update-in acc error-path
-                   #(conj % (message-fn {:path k, :value pred-subject
-                                         :args (seq args)
+                   #(conj % (message-fn {:path     k, :value pred-subject
+                                         :args     (seq args)
                                          :metadata meta-with-defaults
-                                         :message message}))))
+                                         :message  message}))))
       acc)))
 
 
@@ -170,10 +170,10 @@ If you'd like to know more about the motivation behind `bouncer`, check the
                      :name v/required)"
   [error]
   (let [{:keys [message path metadata]} error]
-    #+clj (format (or message (:default-message-format metadata))
-                  (name (peek path)))
-    #+cljs (gstring/format (or message (:default-message-format metadata))
-                           (name (peek path)))))
+    #?(:clj (format (or message (:default-message-format metadata))
+                    (name (peek path))))
+    #?(:cljs (gstring/format (or message (:default-message-format metadata))
+                             (name (peek path))))))
 
 (defn validate
   "Takes a
@@ -213,8 +213,8 @@ If you'd like to know more about the motivation behind `bouncer`, check the
 "
   [& args]
   (let [[message-fn args] (if (fn? (first args))
-                                   [(first args) (next args)]
-                                   [with-default-messages args])
+                            [(first args) (next args)]
+                            [with-default-messages args])
         [m forms] [(first args) (next args)]]
     (validate* message-fn m (build-steps forms))))
 
