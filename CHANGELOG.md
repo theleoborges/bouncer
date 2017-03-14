@@ -1,3 +1,7 @@
+## 1.0.1 (14/03/2017)
+
+- Merge [PR #56](https://github.com/leonardoborges/bouncer/pull/56): "updated to use cljc, bumped up library versions"
+
 ## 1.0.0 (21/12/2015)
 
 - Merge [PR #41](https://github.com/leonardoborges/bouncer/pull/33): "Fixes #36: All validators are optional by default"
