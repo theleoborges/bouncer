@@ -7,7 +7,7 @@
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/clojurescript "1.9.495"]
                  [clj-time "0.13.0"]
-                 [com.andrewmcveigh/cljs-time "0.5.0-alpha2"]]
+                 [com.andrewmcveigh/cljs-time "0.5.2"]]
 
   :profiles {:dev  {}
              :1.6  {:jdependencies [[org.clojure/clojure "1.6.0"]]}
