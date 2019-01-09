@@ -1,4 +1,4 @@
-# bouncer [![Build Status](https://travis-ci.org/leonardoborges/bouncer.svg?branch=master)](https://travis-ci.org/leonardoborges/bouncer)
+# bouncer [![Build Status](https://travis-ci.org/leonardoborges/bouncer.svg?branch=master)](https://travis-ci.org/leonardoborges/bouncer) <script type='text/javascript' src='https://ko-fi.com/widgets/widget_2.js'></script><script type='text/javascript'>kofiwidget2.init('Buy me a coffee', '#46b798', 'H2H8OH34');kofiwidget2.draw();</script> 
 
 A validation DSL for Clojure & Clojurescript applications
 
