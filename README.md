@@ -552,6 +552,6 @@ It'll run all tests against Clojure 1.4, 1.5 and 1.6, as well as Clojurescript -
 
 ## License
 
-Copyright © 2012-2014 [Leonardo Borges](http://www.leonardoborges.com)
+Copyright © 2012-2019 [Leonardo Borges](http://www.leonardoborges.com)
 
 Distributed under the [MIT License](http://opensource.org/licenses/MIT).
