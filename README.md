@@ -320,7 +320,7 @@ As shown above, validators as just functions. The downside is that by using a fu
 
 ```clojure
 (b/validate {:age 29}
-               :age young?)
+             :age young?)
 
 ;; [{:age ("Custom validation failed for age")}
 ;; {:bouncer.core/errors {:age ("Custom validation failed for age")}, :age 29}]
